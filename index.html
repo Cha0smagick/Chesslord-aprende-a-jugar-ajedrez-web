@@ -139,6 +139,10 @@
     game.setLevel('MEDIO');
     game.setHumanColor(NEGRO);
     render(game.getState());
+    // Si empieza la IA, que se mueva automáticamente
+    if (game.turn !== game.humanColor && !game.gameOver) {
+      game.iaMove();
+    }
   }
 
   /* ---------- Renderizado del tablero ---------- */
