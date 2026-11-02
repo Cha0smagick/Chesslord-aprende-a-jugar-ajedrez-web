@@ -8,7 +8,7 @@ class ChessGame:
         print("Selecciona dificultad: Fácil, Intermedio, Difícil")
         difficulty = input("Dificultad: ")
         self.engine = ChessEngine(self.board, difficulty)
-        self.turn = NEGRO
+        self.turn = BLANCO  # las blancas mueven primero
 
     def display(self):
         print("\n    a b c d e f g h")
@@ -23,6 +23,13 @@ class ChessGame:
         print("Juegas con NEGRAS (minúsculas). La IA es BLANCAS (MAYÚSCULAS).")
         while True:
             self.display()
+            legal = self.board.get_legal_moves(self.turn)
+            if not legal:
+                if self.board.is_in_check(self.turn):
+                    print(f"¡JAQUE MATE! Gana {'NEGRO' if self.turn == BLANCO else 'BLANCO'}")
+                else:
+                    print("¡AHOGADO! Tablas.")
+                break
             if self.board.is_in_check(self.turn):
                 print(f"⚠️ ¡El rey {self.turn} está en JAQUE!")
 

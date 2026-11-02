@@ -4,6 +4,7 @@ class Board:
     def __init__(self):
         self.grid = self._crear_tablero_inicial()
         self.castling_rights = {'k': False, 'r_a1': False, 'r_h1': False, 'K': False, 'R_A8': False, 'R_H8': False}
+        self.last_move = None  # ((co, fo), (cd, fd)) para en passant
 
     def _crear_tablero_inicial(self):
         return [
@@ -25,11 +26,14 @@ class Board:
         (c_o, f_o), (c_d, f_d) = move
         ficha = self.grid[f_o][c_o]
         captura = self.grid[f_d][c_d]
+        dx, dy = abs(c_d - c_o), abs(f_d - f_o)
+        dir_p = 1 if self.get_color(ficha) == NEGRO else -1
         memo = {
             'move': move, 
             'captured': captura, 
             'piece': ficha, 
-            'old_castling': self.castling_rights.copy()
+            'old_castling': self.castling_rights.copy(),
+            'old_last_move': self.last_move,
         }
 
         # Lógica de Enroque (si el rey se mueve 2 espacios)
@@ -43,11 +47,31 @@ class Board:
         self.grid[f_d][c_d] = ficha
         self.grid[f_o][c_o] = ' '
 
+        # En passant: detectar captura al paso usando el last_move del turno anterior
+        en_passant_captured = None
+        if (ficha.lower() == 'p' and dx == 1 and captura == ' '
+                and self.last_move is not None
+                and self.last_move[1] is not None
+                and (c_d, f_d) == self.last_move[1]):
+            en_passant_captured = (c_d, f_d - dir_p)  # peón enemigo capturado detrás
+            self.grid[en_passant_captured[1]][en_passant_captured[0]] = ' '
+
+        # Mover pieza
+        self.grid[f_d][c_d] = ficha
+        self.grid[f_o][c_o] = ' '
+
+        # Grabar last_move para en passant del próximo turno
+        ep_target = None
+        if ficha.lower() == 'p' and abs(f_d - f_o) == 2:
+            ep_target = (c_d, f_o + dir_p)
+        self.last_move = (move, ep_target)
+
         # Promoción automática a Reina
         if ficha.lower() == 'p' and (f_d == 0 or f_d == 7):
             self.grid[f_d][c_d] = 'q' if ficha.islower() else 'Q'
 
         self._update_castling_rights(ficha, c_o, f_o)
+        memo['en_passant_captured'] = en_passant_captured
         return memo
 
     def undo_move(self, memo):
@@ -55,7 +79,14 @@ class Board:
         self.grid[f_o][c_o] = memo['piece']
         self.grid[f_d][c_d] = memo['captured']
         self.castling_rights = memo['old_castling']
-        
+        self.last_move = memo.get('old_last_move')
+
+        # Deshacer captura al paso: restaurar el peón capturado en su casilla
+        ep = memo.get('en_passant_captured')
+        if ep:
+            # el peón capturado es del color contrario al pezón que capturó
+            self.grid[ep[1]][ep[0]] = 'p' if memo['piece'].isupper() else 'P'
+
         if memo['piece'].lower() == 'k' and abs(c_d - c_o) == 2:
             if c_d > c_o:
                 self.grid[f_o][7], self.grid[f_o][5] = self.grid[f_o][5], ' '
@@ -118,8 +149,11 @@ class Board:
                 if f_d == f_o + dir and objetivo == ' ': es_valido = True
                 elif f_o == (1 if color == NEGRO else 6) and f_d == f_o + 2*dir and objetivo == ' ' and self.grid[f_o + dir][c_o] == ' ':
                     es_valido = True
-            elif dx == 1 and f_d == f_o + dir and objetivo != ' ': # Captura
+            elif dx == 1 and f_d == f_o + dir and objetivo != ' ': # Captura normal
                 es_valido = True
+            elif dx == 1 and f_d == f_o + dir and objetivo == ' ': # Captura al paso
+                if self.last_move is not None and self.last_move[1] is not None and (c_d, f_d) == self.last_move[1]:
+                    es_valido = True
         elif tipo == 'n':
             # El caballo se mueve en L (2 cuadros en una dirección cardinal y 1 cuadro en dirección perpendicular).
             # Esta lógica permite los 8 posibles movimientos del caballo independientemente de su posición.
@@ -132,6 +166,9 @@ class Board:
             es_valido = self._check_path((origen, destino), True, True)
         elif tipo == 'k':
             es_valido = dx <= 1 and dy <= 1
+            # Enroque: rey se mueve 2 casillas
+            if dx == 2 and dy == 0 and not es_valido:
+                es_valido = self._can_castle(color, c_d > c_o)
         
         return es_valido
 
@@ -158,6 +195,58 @@ class Board:
                 curr_f += step_f
             return True
         return False
+
+    def _is_square_attacked(self, square, by_color):
+        (c, f) = square
+        for ff in range(8):
+            for cc in range(8):
+                piece = self.grid[ff][cc]
+                if piece == ' ' or self.get_color(piece) != by_color:
+                    continue
+                # Peón: ataca las dos casillas diagonales al frente, ocupada o no
+                if piece.lower() == 'p':
+                    dir_p = 1 if by_color == NEGRO else -1
+                    if (cc - 1, ff + dir_p) == square or (cc + 1, ff + dir_p) == square:
+                        return True
+                    continue
+                if self._pseudo_valido((cc, ff), square):
+                    return True
+        return False
+
+    def _find_king(self, color):
+        rey = 'k' if color == NEGRO else 'K'
+        for f in range(8):
+            for c in range(8):
+                if self.grid[f][c] == rey:
+                    return (c, f)
+        return None
+
+    def _can_castle(self, color, kingside):
+        pos = self._find_king(color)
+        if not pos or self.is_in_check(color):
+            return False
+        (c_r, f_r) = pos
+        king_key = 'K' if color == BLANCO else 'k'
+        if kingside:
+            rook_key = 'R_H8' if color == BLANCO else 'r_h1'
+            if self.castling_rights[king_key] or self.castling_rights[rook_key]:
+                return False
+            path = [(5, f_r), (6, f_r)]
+            squares = [pos, (6, f_r)]
+        else:
+            rook_key = 'R_A8' if color == BLANCO else 'r_a1'
+            if self.castling_rights[king_key] or self.castling_rights[rook_key]:
+                return False
+            path = [(3, f_r), (2, f_r), (1, f_r)]
+            squares = [pos, (3, f_r), (2, f_r)]
+        for (cc, ff) in path:
+            if self.grid[ff][cc] != ' ':
+                return False
+        oponente = NEGRO if color == BLANCO else BLANCO
+        for sq in squares:
+            if self._is_square_attacked(sq, oponente):
+                return False
+        return True
 
     def is_in_check(self, color):
         rey_char = 'k' if color == NEGRO else 'K'

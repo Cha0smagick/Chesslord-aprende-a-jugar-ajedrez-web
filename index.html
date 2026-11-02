@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="ALEJANDRO QUINTERO RUIZ">
+  <meta name="description" content="Chesslord — Aprende a jugar ajedrez con un motor profesional. Niveles básico, medio y maestro. Curso completo gratuito.">
+  <title>Chesslord — Aprende ajedrez (por ALEJANDRO QUINTERO RUIZ)</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span style="font-size:2rem">♟️</span>
+    <div>
+      <div style="font-weight:800; letter-spacing:-0.5px">Chesslord</div>
+      <div style="font-size:0.8rem; color:var(--color-texto-suave)">Aprende ajedrez</div>
+    </div>
+  </div>
+  <nav class="navegacion">
+    <button class="btn-nav activo" data-seccion="jugar">Jugar</button>
+    <button class="btn-nav" data-seccion="curso">Curso</button>
+    <button class="btn-nav" data-seccion="niveles">Niveles</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ===== PANEL IZQUIERDO: TABLERO ===== -->
+  <section id="seccion-jugar" class="seccion activa">
+    <div class="tablero-contenedor">
+      <div id="tablero" class="tablero"></div>
+      <div class="coordenadas" id="coords"></div>
+    </div>
+
+    <div id="estado" class="estado turno">Turno: Blancas</div>
+
+    <div class="controles-partida">
+      <button class="btn btn-secundario" id="btn-deshacer">↶ Deshacer</button>
+      <button class="btn" id="btn-reiniciar">⟳ Nueva partida</button>
+    </div>
+
+    <div id="mensaje" class="mensaje oculto"></div>
+
+    <div class="historial" id="historial">
+      <div style="font-size:0.8rem; color:var(--color-texto-suave); margin-bottom:0.5rem">Historial</div>
+      <div id="lista-jugadas"></div>
+    </div>
+  </section>
+
+  <!-- ===== PANEL IZQUIERDO: CURSO (oculto por defecto) ===== -->
+  <section id="seccion-curso" class="seccion curso-contenedor oculto">
+    <div class="card">
+      <h2>📚 Curso de Ajedrez</h2>
+      <p style="color:var(--color-texto-suave); font-size:0.9rem; margin-bottom:1rem">
+        Aprende desde cero o mejora tu nivel. Contenido creado por <strong>ALEJANDRO QUINTERO RUIZ</strong>.
+      </p>
+
+      <div id="modulos-curso"></div>
+    </div>
+  </section>
+
+  <!-- ===== PANEL DERECHO: NIVELES / CONTROLES ===== -->
+  <aside class="panel-lateral">
+    <div class="card">
+      <h2>⚙️ Nivel de IA</h2>
+      <div class="niveles">
+        <button class="btn-nivel activo" data-nivel="BASICO">
+          <strong>Básico</strong> — Para principiantes (IA débil)
+        </button>
+        <button class="btn-nivel" data-nivel="MEDIO">
+          <strong>Medio</strong> — Jugador intermedio
+        </button>
+        <button class="btn-nivel" data-nivel="MAESTRO">
+          <strong>Maestro</strong> — IA fuerte (minimax profundidad 6)
+        </button>
+      </div>
+
+      <div style="margin-top:1rem; font-size:0.85rem; color:var(--color-texto-suave)">
+        Eliges con qué color juegas. La IA es el contrario.
+      </div>
+
+      <div style="margin-top:1rem; display:flex; gap:0.5rem">
+        <button class="btn btn-secundario" id="btn-color-blancas">Jugar Blancas</button>
+        <button class="btn btn-secundario" id="btn-color-negras">Jugar Negras</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>ℹ️ Estado</h2>
+      <div id="estado-detalle" style="font-size:0.9rem; color:var(--color-texto-suave)">
+        Esperando movimiento…
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🏆 Resultado</h2>
+      <div id="resultado" style="font-size:0.95rem; color:var(--color-texto-suave); min-height:1.2rem">—</div>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <span class="autor">Creado por ALEJANDRO QUINTERO RUIZ</span>
+  <div>Motor de ajedrez de Chesslord • Código abierto • Para aprender a jugar ajedrez</div>
+</footer>
+
+<script type="module">
+  import { Board } from './js/chesslogic.js';
+  import { ChessEngine, DIFICULTADES } from './js/chessai.js';
+  import { BLANCO, NEGRO } from './js/chessconstants.js';
+
+  /* ---------- Estado de la aplicación ---------- */
+  const boardEl = document.getElementById('tablero');
+  const coordsEl = document.getElementById('coords');
+  const estadoEl = document.getElementById('estado');
+  const mensajeEl = document.getElementById('mensaje');
+  const historialEl = document.getElementById('lista-jugadas');
+  const btnDeshacer = document.getElementById('btn-deshacer');
+  const btnReiniciar = document.getElementById('btn-reiniciar');
+  const btnColorBlancas = document.getElementById('btn-color-blancas');
+  const btnColorNegras = document.getElementById('btn-color-negras');
+  const btnNiveles = document.querySelectorAll('.btn-nivel');
+  const estadoDetalle = document.getElementById('estado-detalle');
+  const resultadoEl = document.getElementById('resultado');
+
+  const seccionJugar = document.getElementById('seccion-jugar');
+  const seccionCurso = document.getElementById('seccion-curso');
+  const btnNavs = document.querySelectorAll('.btn-nav');
+
+  let game = null;
+  let casillaSeleccionada = null; // {c, f}
+  let casillasValidas = [];
+
+  /* ---------- Inicialización ---------- */
+  function crearJuego() {
+    game = new ChessGame(render);
+    game.setLevel('MEDIO');
+    game.setHumanColor(NEGRO);
+    render(game.getState());
+  }
+
+  /* ---------- Renderizado del tablero ---------- */
+  const PIEZAS_UNICODE = {
+    'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
+    'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
+  };
+
+  function renderizarTablero(grid) {
+    boardEl.innerHTML = '';
+    for (let f = 0; f < 8; f++) {
+      for (let c = 0; c < 8; c++) {
+        const casilla = document.createElement('div');
+        const esClara = (f + c) % 2 === 0;
+        casilla.className = `casilla ${esClara ? 'clara' : 'oscura'}`;
+        casilla.dataset.c = c;
+        casilla.dataset.f = f;
+
+        const ficha = grid[f][c];
+        if (ficha !== ' ') {
+          const span = document.createElement('span');
+          span.className = 'pieza';
+          span.textContent = PIEZAS_UNICODE[ficha];
+          casilla.appendChild(span);
+        }
+
+        casilla.addEventListener('click', () => handleClickCasilla(c, f));
+        boardEl.appendChild(casilla);
+      }
+    }
+
+    // Coordenadas
+    const cols = 'abcdefgh';
+    let htmlCoords = '';
+    for (let c = 0; c < 8; c++) htmlCoords += `<div>${cols[c]}</div>`;
+    coordsEl.innerHTML = htmlCoords;
+  }
+
+  function resaltarCasillas() {
+    document.querySelectorAll('.casilla').forEach(el => {
+      el.classList.remove('seleccionada', 'valida', 'jaque');
+    });
+
+    if (casillaSeleccionada) {
+      const sel = document.querySelector(`[data-c="${casillaSeleccionada.c}"][data-f="${casillaSeleccionada.f}"]`);
+      if (sel) sel.classList.add('seleccionada');
+    }
+
+    casillasValidas.forEach(move => {
+      const [[cO, fO], [cD, fD]] = move;
+      // Solo mostrar las válidas desde la casilla seleccionada
+      if (casillaSeleccionada && cO === casillaSeleccionada.c && fO === casillaSeleccionada.f) {
+        const el = document.querySelector(`[data-c="${cD}"][data-f="${fD}"]`);
+        if (el) el.classList.add('valida');
+      }
+    });
+
+    // Jaque
+    const state = game.getState();
+    if (state.inCheck && !state.gameOver) {
+      // Encontrar rey del turno actual
+      const reyChar = state.turn === BLANCO ? 'K' : 'k';
+      for (let f = 0; f < 8; f++) {
+        for (let c = 0; c < 8; c++) {
+          if (state.grid[f][c] === reyChar) {
+            const el = document.querySelector(`[data-c="${c}"][data-f="${f}"]`);
+            if (el) el.classList.add('jaque');
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  function actualizarEstado(state) {
+    const turnoTexto = state.turn === BLANCO ? 'Blancas' : 'Negras';
+    estadoEl.textContent = state.gameOver ? 'Partida finalizada' : `Turno: ${turnoTexto}`;
+    estadoEl.className = 'estado ' + (state.gameOver ? 'fin' : state.inCheck ? 'jaque' : 'turno');
+
+    if (state.gameOver) {
+      let texto = '';
+      if (state.result === 'mate') {
+        texto = `¡JAQUE MATE! Gana ${state.winner === BLANCO ? 'Blancas' : 'Negras'}`;
+      } else if (state.result === 'ahogado') {
+        texto = '¡AHOGADO! Tablas.';
+      }
+      resultadoEl.textContent = texto;
+      resultadoEl.style.color = state.result === 'mate' ? '#f87171' : '#22c55e';
+      btnDeshacer.disabled = true;
+    } else {
+      resultadoEl.textContent = '—';
+      btnDeshacer.disabled = false;
+    }
+
+    estadoDetalle.textContent = state.inCheck ? `⚠️ ${turnoTexto} está en JAQUE` : `Esperando movimiento de ${turnoTexto}`;
+
+    // Historial
+    historialEl.innerHTML = '';
+    state.moveHistory.forEach((h, i) => {
+      const num = Math.floor(i / 2) + 1;
+      const esBlanca = i % 2 === 0;
+      const div = document.createElement('div');
+      div.className = 'jugada';
+      if (esBlanca) {
+        div.innerHTML = `<span class="numero">${num}.</span><span>${ChessGame.notacion(h.move)}</span>`;
+      } else {
+        const prev = historialEl.lastElementChild;
+        if (prev) {
+          const span = document.createElement('span');
+          span.textContent = ChessGame.notacion(h.move);
+          prev.appendChild(span);
+        }
+      }
+      if (esBlanca) historialEl.appendChild(div);
+    });
+    historialEl.scrollTop = historialEl.scrollHeight;
+  }
+
+  function render(state) {
+    renderizarTablero(state.grid);
+    resaltarCasillas();
+    actualizarEstado(state);
+    mensajeEl.classList.add('oculto');
+  }
+
+  /* ---------- Interacción con el tablero ---------- */
+  function handleClickCasilla(c, f) {
+    if (game.gameOver) return;
+    if (game.turn !== game.humanColor) return;
+
+    const grid = game.board.grid;
+    const ficha = grid[f][c];
+
+    // Si ya hay una casilla seleccionada y clickeo una válida desde ella → mover
+    if (casillaSeleccionada) {
+      const move = [[casillaSeleccionada.c, casillaSeleccionada.f], [c, f]];
+      const esValida = casillasValidas.some(m => m[1][0] === c && m[1][1] === f);
+      if (esValida) {
+        game.tryMove(move);
+        casillaSeleccionada = null;
+        casillasValidas = [];
+        render(game.getState());
+        if (game.turn !== game.humanColor && !game.gameOver) {
+          game.iaMove();
+        }
+        return;
+      }
+      // Si clickeo otra casilla propia, cambio la selección
+      if (ficha !== ' ' && game.board.getColor(ficha) === game.turn) {
+        casillaSeleccionada = { c, f };
+        casillasValidas = game.board.getLegalMoves(game.turn).filter(m => m[0][0] === c && m[0][1] === f);
+        render(game.getState());
+        return;
+      }
+      // Deseleccionar si clickeo fuera
+      casillaSeleccionada = null;
+      casillasValidas = [];
+      render(game.getState());
+      return;
+    }
+
+    // Primera selección: debe ser una pieza del turno
+    if (ficha !== ' ' && game.board.getColor(ficha) === game.turn) {
+      casillaSeleccionada = { c, f };
+      casillasValidas = game.board.getLegalMoves(game.turn).filter(m => m[0][0] === c && m[0][1] === f);
+      render(game.getState());
+    }
+  }
+
+  /* ---------- Botones ---------- */
+  btnReiniciar.addEventListener('click', () => {
+    game.reiniciar();
+    casillaSeleccionada = null;
+    casillasValidas = [];
+    render(game.getState());
+  });
+
+  btnDeshacer.addEventListener('click', () => {
+    if (game.deshacer()) {
+      casillaSeleccionada = null;
+      casillasValidas = [];
+      render(game.getState());
+    }
+  });
+
+  btnColorBlancas.addEventListener('click', () => {
+    game.setHumanColor(BLANCO);
+    game.reiniciar();
+    casillaSeleccionada = null;
+    casillasValidas = [];
+    render(game.getState());
+    btnColorBlancas.classList.add('btn');
+    btnColorNegras.classList.remove('btn');
+  });
+
+  btnColorNegras.addEventListener('click', () => {
+    game.setHumanColor(NEGRO);
+    game.reiniciar();
+    casillaSeleccionada = null;
+    casillasValidas = [];
+    render(game.getState());
+    btnColorNegras.classList.add('btn');
+    btnColorBlancas.classList.remove('btn');
+  });
+
+  btnNiveles.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btnNiveles.forEach(b => b.classList.remove('activo'));
+      btn.classList.add('activo');
+      game.setLevel(btn.dataset.nivel);
+      game.reiniciar();
+      casillaSeleccionada = null;
+      casillasValidas = [];
+      render(game.getState());
+    });
+  });
+
+  /* ---------- Navegación secciones ---------- */
+  btnNavs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btnNavs.forEach(b => b.classList.remove('activo'));
+      btn.classList.add('activo');
+      const sec = btn.dataset.seccion;
+      if (sec === 'jugar') {
+        seccionJugar.classList.remove('oculto');
+        seccionCurso.classList.add('oculto');
+      } else if (sec === 'curso') {
+        seccionJugar.classList.add('oculto');
+        seccionCurso.classList.remove('oculto');
+        renderCurso();
+      }
+    });
+  });
+
+  /* ---------- Curso ---------- */
+  const CURSO = [
+    {
+      titulo: 'Módulo 1 — Las piezas y su movimiento',
+      lecciones: [
+        {
+          titulo: 'El tablero y las casillas',
+          texto: 'El tablero tiene 64 casillas (8×8), alternando colores claro y oscuro. Las columnas se llaman archivos (a–h) y las filas se llaman rangos (1–8). Cada casilla tiene una coordenada única, como e4 o d5.'
+        },
+        {
+          titulo: 'El Rey (K / k)',
+          texto: 'El rey se mueve una casilla en cualquier dirección. Es la pieza más importante: si el rey es capturado (jaque mate), se pierde la partida.',
+          ejercicio: {
+            enunciado: '¿Cuántas casillas puede alcanzar el rey desde el centro (e4)?',
+            solucion: '8',
+            feedback: ''
+          }
+        },
+        {
+          titulo: 'La Reina (Q / q)',
+          texto: 'La reina es la pieza más poderosa: se mueve cualquier número de casillas en horizontal, vertical o diagonal.'
+        },
+        {
+          titulo: 'La Torre (R / r)',
+          texto: 'La torre se mueve cualquier número de casillas en horizontal o vertical. Participa en el enroque.'
+        },
+        {
+          titulo: 'El Alfil (B / b)',
+          texto: 'El alfil se mueve cualquier número de casillas en diagonal. Siempre se queda en casillas del mismo color.'
+        },
+        {
+          titulo: 'El Caballo (N / n)',
+          texto: 'El caballo se mueve en "L": dos casillas en línea recta y una a un lado. Es la única pieza que puede saltar sobre otras piezas.'
+        },
+        {
+          titulo: 'El Peón (P / p)',
+          texto: 'El peón avanza una casilla hacia adelante (dos desde su posición inicial). Captura en diagonal. Puede ser promovido a cualquier pieza (excepto rey) al llegar a la última fila.'
+        }
+      ]
+    },
+    {
+      titulo: 'Módulo 2 — Reglas esenciales',
+      lecciones: [
+        {
+          titulo: 'Jaque y Jaque Mate',
+          texto: 'El jaque ocurre cuando el rey está bajo ataque. Debes salir del jaque en tu movimiento. Si no puedes, es jaque mate y pierdes.'
+        },
+        {
+          titulo: 'Enroque',
+          texto: 'Movimiento especial del rey con una torre. El rey se mueve dos casillas hacia la torre y esta salta al otro lado. Solo se puede hacer si ninguna pieza ha movido antes y no hay piezas entre medio.'
+        },
+        {
+          titulo: 'Captura al paso (En passant)',
+          texto: 'Si un peón avanza dos casillas desde su posición inicial y pasa junto a un peón enemigo, ese peón enemigo puede capturarlo como si hubiera avanzado solo una casilla.'
+        },
+        {
+          titulo: 'Tablas por ahogado',
+          texto: 'Si el jugador cuyo turno es no tiene ningún movimiento legal y su rey no está en jaque, es ahogado: tablas.'
+        }
+      ]
+    },
+    {
+      titulo: 'Módulo 3 — Táctica básica',
+      lecciones: [
+        {
+          titulo: 'Doble ataque (Fork)',
+          texto: 'Atacar dos piezas enemigas al mismo tiempo con una sola pieza, forzando a tu oponente a perder material.'
+        },
+        {
+          titulo: 'Absorción (Pin)',
+          texto: 'Atacar una pieza que no puede moverse porque al hacerlo dejaría al rey al descubierto (jaque).'
+        },
+        {
+          titulo: 'Clavada (Skewer)',
+          texto: 'Similar a la absorción, pero la pieza más valiosa está delante y debe moverse, exponiendo la pieza de menor valor detrás.'
+        }
+      ]
+    }
+  ];
+
+  function renderCurso() {
+    const contenedor = document.getElementById('modulos-curso');
+    contenedor.innerHTML = '';
+    CURSO.forEach(modulo => {
+      const modDiv = document.createElement('div');
+      modDiv.className = 'leccion';
+      modDiv.innerHTML = `<h3 style="color:var(--color-texto); font-size:1.1rem; margin-bottom:0.5rem">${modulo.titulo}</h3>`;
+      modulo.lecciones.forEach(leccion => {
+        const lesDiv = document.createElement('div');
+        lesDiv.className = 'leccion';
+        lesDiv.innerHTML = `
+          <h4>${leccion.titulo}</h4>
+          <p>${leccion.texto}</p>
+          ${leccion.ejercicio ? `
+            <div class="ejercicio">
+              <h4>❓ Ejercicio: ${leccion.ejercicio.enunciado}</h4>
+              <input type="text" id="resp-${modulo.titulo}-${leccion.titulo}" placeholder="Tu respuesta" maxlength="2">
+              <button class="btn" onclick="verificarEjercicio('${modulo.titulo}', '${leccion.titulo}')">Verificar</button>
+              <div class="feedback" id="fb-${modulo.titulo}-${leccion.titulo}"></div>
+            </div>
+          ` : ''}
+        `;
+        modDiv.appendChild(lesDiv);
+      });
+      contenedor.appendChild(modDiv);
+    });
+  }
+
+  window.verificarEjercicio = function(modulo, leccion) {
+    const input = document.getElementById(`resp-${modulo}-${leccion}`);
+    const fb = document.getElementById(`fb-${modulo}-${leccion}`);
+    const valor = input.value.trim();
+    let correcto = '';
+    if (modulo === 'Módulo 1 — Las piezas y su movimiento' && leccion === 'El Rey (K / k)') correcto = '8';
+    if (valor === correcto) {
+      fb.textContent = '✅ Correcto. ¡Bien hecho!';
+      fb.style.color = '#22c55e';
+    } else if (valor !== '') {
+      fb.textContent = '❌ Intenta de nuevo.';
+      fb.style.color = '#f87171';
+    } else {
+      fb.textContent = '';
+    }
+  };
+
+  /* ---------- Arranque ---------- */
+  crearJuego();
+</script>
+
+</body>
+</html>
