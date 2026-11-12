@@ -238,9 +238,6 @@
   const seccionTactica = document.getElementById('seccion-tactica');
   const btnNavs = document.querySelectorAll('.btn-nav');
 
-  // Course engine (lecciones interactivas)
-  const courseEngine = new CourseEngine(CURSO_MODULOS, renderCursoInteractivo);
-
   // Referencias curso interactivo
   const cursoContenidoEl = document.getElementById('curso-contenido');
   const cursoFeedbackEl = document.getElementById('curso-feedback');
@@ -1123,6 +1120,10 @@
     courseEngine.siguienteLeccion();
     renderCursoInteractivo();
   });
+
+  // Course engine (se crea después de renderCursoInteractivo para evitar TDZ)
+  const courseEngine = new CourseEngine(CURSO_MODULOS, renderCursoInteractivo);
+  courseEngine.cargarLeccion(0, 0);
 
   /* ---------- Aperturas ---------- */
   function renderAperturas() {
