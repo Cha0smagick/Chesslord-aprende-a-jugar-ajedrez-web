@@ -17,6 +17,7 @@ Sitio web gratuito, profesional y abierto para aprender ajedrez desde cero, con 
 | 🤖 **IA con 3 niveles** | **Básico** (mirada corta y fallos deliberados), **Medio** y **Maestro** (negamax con poda alfa-beta, ordenación de jugadas, búsqueda de capturas y profundización iterativa con límite de tiempo). |
 | ✍️ **Notación algebraica** | Historial en notación oficial (SAN), con desambiguación, capturas, enroques, coronaciones y signos de jaque/mate. |
 | 📚 **Curso completo** | 3 módulos con teoría y ejercicios interactivos con corrección automática. |
+| 🎯 **Entrenamiento** | Posiciones didácticas basadas en libros clásicos (Morphy, Capablanca, Lasker, Silman, Polugayevsky). Encuentra la jugada clave con pista, verificación inmediata y explicación teórica. |
 | 🎨 **Diseño cuidado** | Tablero CSS Grid, piezas Unicode, resaltado de casillas válidas y de la última jugada, indicador de jaque, modo oscuro y diseño responsivo. |
 | ♟️ **Elige tu color** | Juega con Blancas o Negras; el tablero gira automáticamente a tu lado. |
 | ↩️ **Control de partida** | Deshacer (retira tu jugada y la respuesta de la IA) y nueva partida en cualquier momento. |
@@ -46,6 +47,27 @@ Sitio web gratuito, profesional y abierto para aprender ajedrez desde cero, con 
 | **Módulo 3** | Táctica básica: Doble ataque (fork), Clavada (pin), Enfilada (skewer). |
 
 Cada lección incluye texto explicativo y ejercicios interactivos con corrección automática y tolerante a mayúsculas y tildes.
+
+---
+
+## 🎯 Entrenamiento de jugadas específicas
+
+La sección **Entrenamiento** te permite practicar posiciones clave aisladas, inspiradas en la teoría de libros clásicos de ajedrez (Morphy, Capablanca, Lasker, Silman, Polugayevsky, entre otros). Cada ejercicio presenta:
+
+- Una posición reducida con las piezas relevantes.
+- La jugada clave que debes encontrar.
+- Una explicación teórica del porqué es la mejor jugada.
+- Una pista si te atascas.
+- Verificación inmediata: acierto, movimiento legal pero no clave, o ilegal.
+
+Temas incluidos:
+- **Control del centro** (Morphy)
+- **Desarrollo de piezas** (Capablanca)
+- **Doble ataque / Fork** (Polugayevsky)
+- **Peón aislado** (Silman)
+- **Enfilada / Skewer** (Lasker)
+
+El objetivo no es solo mover piezas, sino entender *por qué* cada jugada es fuerte, para que puedas aplicar esos patrones en tus propias partidas.
 
 ---
 
