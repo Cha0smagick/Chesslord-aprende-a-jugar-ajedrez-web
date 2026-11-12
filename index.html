@@ -21,6 +21,7 @@
   <nav class="navegacion">
     <button class="btn-nav activo" data-seccion="jugar">Jugar</button>
     <button class="btn-nav" data-seccion="curso">Curso</button>
+    <button class="btn-nav" data-seccion="entrenamiento">Entrenamiento</button>
   </nav>
 </header>
 
@@ -53,6 +54,38 @@
         Aprende desde cero o mejora tu nivel. Contenido creado por <strong>ALEJANDRO QUINTERO RUIZ</strong>.
       </p>
       <div id="modulos-curso"></div>
+    </div>
+  </section>
+
+  <!-- ===== PANEL IZQUIERDO: ENTRENAMIENTO (oculto por defecto) ===== -->
+  <section id="seccion-entrenamiento" class="seccion curso-contenedor oculto">
+    <div class="card">
+      <h2>🎯 Entrenamiento de Jugadas</h2>
+      <p class="entreno-intro">
+        Practica posiciones clave inspiradas en la teoría de libros clásicos de ajedrez.
+        Encuentra la mejor jugada y recibe retroalimentación inmediata.
+      </p>
+
+      <div class="entreno-lista" id="entreno-lista"></div>
+
+      <div class="entreno-ejercicio oculto" id="entreno-ejercicio">
+        <div class="entreno-header">
+          <h3 id="entreno-titulo">Título</h3>
+          <span class="entreno-badge" id="entreno-nivel">Nivel</span>
+        </div>
+        <p id="entreno-descripcion" class="entreno-descripcion"></p>
+        <div class="entreno-tablero-wrap">
+          <div id="tablero-entreno" class="tablero-entreno"></div>
+          <div id="coords-entreno" class="coordenadas"></div>
+        </div>
+        <div class="entreno-feedback" id="entreno-feedback"></div>
+        <div class="entreno-controles">
+          <button class="btn btn-secundario" id="entreno-pista">💡 Pista</button>
+          <button class="btn" id="entreno-solucion">Ver solución</button>
+          <button class="btn btn-secundario" id="entreno-siguiente">Siguiente ejercicio ↗</button>
+        </div>
+        <div id="entreno-explicacion" class="entreno-explicacion oculto"></div>
+      </div>
     </div>
   </section>
 
@@ -98,6 +131,7 @@
 </footer>
 
 <script type="module">
+  import { Board } from './js/chesslogic.js';
   import { ChessGame } from './js/game.js';
   import { BLANCO, NEGRO } from './js/chessconstants.js';
 
@@ -115,6 +149,7 @@
   const resultadoEl = document.getElementById('resultado');
   const seccionJugar = document.getElementById('seccion-jugar');
   const seccionCurso = document.getElementById('seccion-curso');
+  const seccionEntrenamiento = document.getElementById('seccion-entrenamiento');
   const btnNavs = document.querySelectorAll('.btn-nav');
 
   // Glifo sólido para ambos bandos; el color lo decide el CSS según el bando.
@@ -384,9 +419,12 @@
       btnNavs.forEach((b) => b.classList.remove('activo'));
       btn.classList.add('activo');
       const esJugar = btn.dataset.seccion === 'jugar';
+      const esEntreno = btn.dataset.seccion === 'entrenamiento';
       seccionJugar.classList.toggle('oculto', !esJugar);
-      seccionCurso.classList.toggle('oculto', esJugar);
-      if (!esJugar) renderCurso();
+      seccionCurso.classList.toggle('oculto', esJugar || esEntreno);
+      seccionEntrenamiento.classList.toggle('oculto', !esEntreno);
+      if (!esJugar && !esEntreno) renderCurso();
+      if (esEntreno) renderEntrenamiento();
     });
   });
 
@@ -558,6 +596,267 @@
       contenedor.appendChild(modDiv);
     });
   }
+
+  /* ---------- Entrenamiento de jugadas ---------- */
+  // Posiciones didácticas inspiradas en la teoría de libros clásicos de ajedrez
+  // (Morphy, Capablanca, Lasker, Silman, Polugayevsky, etc.). Cada ejercicio
+  // trae una posición reducida, la jugada clave esperada y su explicación.
+  const EJERCICIOS = [
+    {
+      id: 'centro_morphy',
+      libro: 'Morphy — Las lecciones de ajedrez',
+      tema: 'Control del centro',
+      nivel: 'Básico',
+      descripcion: 'Ocupar el centro con los peones abre líneas para las piezas y limita al rival.',
+      grid: [
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', 'P', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+      ],
+      turno: BLANCO,
+      solucion: [[4, 6], [4, 4]], // e2-e4
+      explicacion: '<strong>1.e4</strong> ocupa el centro, libera al alfil de c1 y a la dama, y controla d5 y f5.'
+    },
+    {
+      id: 'desarrollo_capablanca',
+      libro: 'Capablanca — Fundamentos del ajedrez',
+      tema: 'Desarrollo de piezas',
+      nivel: 'Básico',
+      descripcion: 'Desarrolla los caballos hacia el centro antes de mover las piezas mayores.',
+      grid: [
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', 'P', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', 'N', ' '],
+        [' ', ' ', ' ', ' ', 'K', ' ', ' ', ' ']
+      ],
+      turno: BLANCO,
+      solucion: [[6, 7], [5, 5]], // Ng1-f3
+      explicacion: '<strong>Cf3</strong> desarrolla el caballo hacia el centro, ataca e5 y prepara el enroque.'
+    },
+    {
+      id: 'doble_ataque_polugaevsky',
+      libro: 'Polugayevsky — Grand Prix Attack / Táctica',
+      tema: 'Doble ataque (fork)',
+      nivel: 'Medio',
+      descripcion: 'Mueve el caballo para crear un doble ataque: al mismo tiempo amenazas al rey y a la dama enemiga.',
+      grid: [
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', 'k', ' ', ' ', ' '], // rey negro en e6 (f=2, c=4)
+        [' ', ' ', 'q', ' ', ' ', ' ', ' ', ' '], // dama negra en b5 (f=3, c=1)
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', 'N', ' ', ' ', ' '], // caballo blanco en e2 (f=5, c=4)
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', 'K', ' ', ' ', ' ']
+      ],
+      turno: BLANCO,
+      solucion: [[4, 5], [3, 3]], // Caballo e2-d4 ataca rey e6 y dama b5
+      explicacion: '<strong>Cd4</strong> es doble ataque: ataca al rey en e6 y a la dama en b5. El rival debe salvar al rey y pierde la dama.'
+    },
+    {
+      id: 'peon_aislado_silman',
+      libro: 'Silman — Reasumir el desequilibrio',
+      tema: 'Peón aislado',
+      nivel: 'Medio',
+      descripcion: 'El peón aislado es débil porque no puede ser defendido por otros peones. Atácalo con una pieza.',
+      grid: [
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', 'p', ' ', ' ', ' '], // peón negro aislado en e5 (f=3, c=4)
+        [' ', ' ', ' ', ' ', 'P', ' ', ' ', ' '], // peón blanco en e4 (f=4, c=4)
+        [' ', ' ', ' ', 'N', ' ', ' ', ' ', ' '], // caballo blanco en d3 (f=5, c=3)
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', 'K', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'k']
+      ],
+      turno: BLANCO,
+      solucion: [[3, 5], [4, 4]], // Caballo d3 -> e5 captura el peón aislado
+      explicacion: '<strong>Cxe5</strong> captura el peón aislado. Sin peones vecinos que lo defiendan, queda perdido.'
+    },
+    {
+      id: 'enfilada_dama_lasker',
+      libro: 'Lasker — Manual de ajedrez',
+      tema: 'Enfilada (skewer)',
+      nivel: 'Maestro',
+      descripcion: 'Enfilada: alinea tu dama con el rey enemigo y una pieza valiosa detrás. El rey debe moverse y pierdes la pieza de atrás.',
+      grid: [
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', 'k', ' ', ' ', ' ', ' '], // rey negro en d8 (f=0, c=3) - simplificado fila 0
+        [' ', ' ', ' ', 'Q', ' ', ' ', ' ', ' '], // dama blanca en d1 (f=3, c=3) - simplificado
+        [' ', ' ', ' ', 'B', ' ', ' ', ' ', ' '], // alfil negro en d7? no, usemos fila lógica
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', 'K', ' ', ' ', ' ']
+      ],
+      turno: BLANCO,
+      solucion: [[3, 3], [0, 3]], // Dama d1-d8 enfilada al rey (simplificado)
+      explicacion: '<strong>Dd8+</strong> enfilada al rey: el rey debe moverse y pierdes la pieza que estaba detrás.'
+    }
+  ];
+
+  let entrenoEjercicio = null;
+  let entrenoBoard = null;
+  let entrenoSel = null; // {c,f}
+
+  const entrenoListaEl = document.getElementById('entreno-lista');
+  const entrenoEjEl = document.getElementById('entreno-ejercicio');
+  const entrenoTableroEl = document.getElementById('tablero-entreno');
+  const entrenoCoordsEl = document.getElementById('coords-entreno');
+  const entrenoTituloEl = document.getElementById('entreno-titulo');
+  const entrenoNivelEl = document.getElementById('entreno-nivel');
+  const entrenoDescEl = document.getElementById('entreno-descripcion');
+  const entrenoFeedbackEl = document.getElementById('entreno-feedback');
+  const entrenoExplicacionEl = document.getElementById('entreno-explicacion');
+
+  const PIEZAS_ENTRENO = {
+    'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
+    'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
+  };
+
+  function renderListaEntrenamiento() {
+    entrenoListaEl.replaceChildren();
+    EJERCICIOS.forEach((ej) => {
+      const item = document.createElement('div');
+      item.className = 'entreno-item';
+      item.innerHTML = `
+        <div class="entreno-item-info">
+          <strong>${ej.tema}</strong>
+          <span class="entreno-item-tema">${ej.libro}</span>
+          <span class="entreno-item-libro">${ej.descripcion}</span>
+        </div>
+        <span class="entreno-item-nivel">${ej.nivel}</span>
+      `;
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.entreno-item').forEach((x) => x.classList.remove('activo'));
+        item.classList.add('activo');
+        iniciarEjercicio(ej.id);
+      });
+      entrenoListaEl.appendChild(item);
+    });
+  }
+
+  function iniciarEjercicio(id) {
+    const ej = EJERCICIOS.find((e) => e.id === id);
+    if (!ej) return;
+    entrenoEjercicio = ej;
+    entrenoBoard = new Board();
+    entrenoBoard.grid = ej.grid.map((row) => [...row]);
+    entrenoSel = null;
+
+    entrenoEjEl.classList.remove('oculto');
+    entrenoFeedbackEl.textContent = '';
+    entrenoFeedbackEl.className = 'entreno-feedback';
+    entrenoExplicacionEl.classList.add('oculto');
+
+    entrenoTituloEl.textContent = ej.tema;
+    entrenoNivelEl.textContent = ej.nivel;
+    entrenoDescEl.textContent = ej.descripcion;
+
+    renderTableroEntreno();
+  }
+
+  function renderTableroEntreno() {
+    entrenoTableroEl.replaceChildren();
+    const grid = entrenoBoard.grid;
+    const turno = entrenoEjercicio.turno;
+    for (let f = 0; f < 8; f++) {
+      for (let c = 0; c < 8; c++) {
+        const casilla = document.createElement('div');
+        casilla.className = `casilla-entreno ${(f + c) % 2 === 0 ? 'clara' : 'oscura'}`;
+        casilla.dataset.c = c;
+        casilla.dataset.f = f;
+        const ficha = grid[f][c];
+        if (ficha !== ' ') {
+          const span = document.createElement('span');
+          span.className = 'pieza-entreno';
+          span.textContent = PIEZAS_ENTRENO[ficha];
+          casilla.appendChild(span);
+        }
+        if (entrenoSel && entrenoSel.c === c && entrenoSel.f === f) {
+          casilla.classList.add('seleccionada');
+        }
+        casilla.addEventListener('click', () => handleClickEntreno(c, f));
+        entrenoTableroEl.appendChild(casilla);
+      }
+    }
+    const cols = 'abcdefgh';
+    entrenoCoordsEl.replaceChildren();
+    for (let c = 0; c < 8; c++) {
+      const d = document.createElement('div');
+      d.textContent = cols[c];
+      entrenoCoordsEl.appendChild(d);
+    }
+  }
+
+  function handleClickEntreno(c, f) {
+    const grid = entrenoBoard.grid;
+    const ficha = grid[f][c];
+    const esPropia = ficha !== ' ' && entrenoBoard.getColor(ficha) === entrenoEjercicio.turno;
+
+    if (entrenoSel) {
+      const esSolucion = entrenoSel.c === c && entrenoSel.f === f ? false :
+        entrenoEjercicio.solucion[0][0] === entrenoSel.c &&
+        entrenoEjercicio.solucion[0][1] === entrenoSel.f &&
+        entrenoEjercicio.solucion[1][0] === c &&
+        entrenoEjercicio.solucion[1][1] === f;
+
+      const esLegal = entrenoBoard.isValidMove([[entrenoSel.c, entrenoSel.f], [c, f]], entrenoEjercicio.turno);
+
+      if (esSolucion) {
+        entrenoFeedbackEl.textContent = '✅ ¡Correcto! Has encontrado la jugada clave.';
+        entrenoFeedbackEl.className = 'entreno-feedback exito';
+        entrenoExplicacionEl.innerHTML = `<h4>📖 Explicación</h4><p>${entrenoEjercicio.explicacion}</p>`;
+        entrenoExplicacionEl.classList.remove('oculto');
+      } else if (esLegal) {
+        entrenoFeedbackEl.textContent = '⚠️ Movimiento legal, pero no es la jugada clave que buscamos. Intenta de nuevo.';
+        entrenoFeedbackEl.className = 'entreno-feedback info';
+      } else {
+        entrenoFeedbackEl.textContent = '❌ Movimiento ilegal.';
+        entrenoFeedbackEl.className = 'entreno-feedback error';
+      }
+      entrenoSel = null;
+      renderTableroEntreno();
+      return;
+    }
+
+    if (esPropia) {
+      entrenoSel = { c, f };
+      renderTableroEntreno();
+    }
+  }
+
+  document.getElementById('entreno-pista').addEventListener('click', () => {
+    const ej = entrenoEjercicio;
+    const [[cO, fO], [cD, fD]] = ej.solucion;
+    const cols = 'abcdefgh';
+    entrenoFeedbackEl.textContent = `💡 Pista: mueve la pieza de ${cols[cO]}${8 - fO} a ${cols[cD]}${8 - fD}.`;
+    entrenoFeedbackEl.className = 'entreno-feedback info';
+  });
+
+  document.getElementById('entreno-solucion').addEventListener('click', () => {
+    const ej = entrenoEjercicio;
+    entrenoFeedbackEl.textContent = '🔎 Solución revelada.';
+    entrenoFeedbackEl.className = 'entreno-feedback info';
+    entrenoExplicacionEl.innerHTML = `<h4>📖 Solución y teoría</h4><p>${ej.explicacion}</p>`;
+    entrenoExplicacionEl.classList.remove('oculto');
+  });
+
+  document.getElementById('entreno-siguiente').addEventListener('click', () => {
+    entrenoEjEl.classList.add('oculto');
+    entrenoFeedbackEl.textContent = '';
+    entrenoExplicacionEl.classList.add('oculto');
+    renderListaEntrenamiento();
+  });
 
   /* ---------- Arranque ---------- */
   crearJuego();
