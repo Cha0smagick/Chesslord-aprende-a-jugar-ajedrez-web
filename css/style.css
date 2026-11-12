@@ -595,3 +595,81 @@ footer {
 }
 .entreno-explicacion h4 { color: var(--color-acento); margin-bottom: 0.5rem; font-size: 1rem; }
 .entreno-explicacion p { color: var(--color-texto-suave); font-size: 0.95rem; line-height: 1.5; }
+
+/* Curso interactivo */
+.curso-progreso { margin: 1rem 0; }
+.curso-progreso-barra {
+  height: 8px;
+  background: var(--color-borde);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.curso-progreso-barra::before {
+  content: '';
+  display: block;
+  height: 100%;
+  background: var(--color-acento);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+.curso-progreso-texto { font-size: 0.85rem; color: var(--color-texto-suave); text-align: center; margin-top: 0.25rem; }
+.curso-nav { display: flex; gap: 0.5rem; margin-bottom: 1rem; justify-content: center; }
+.curso-contenido { margin-bottom: 1rem; }
+.curso-feedback {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  text-align: center;
+}
+.curso-feedback.exito { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid #22c55e; }
+.curso-feedback.info { background: rgba(56, 189, 248, 0.15); color: var(--color-acento); border: 1px solid var(--color-acento); }
+.curso-feedback.error { background: rgba(248, 113, 113, 0.15); color: #f87171; border: 1px solid #f87171; }
+.curso-explicacion {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #0f172a;
+  border: 1px solid var(--color-borde);
+  border-radius: 8px;
+}
+.curso-explicacion h4 { color: var(--color-acento); margin-bottom: 0.5rem; font-size: 1rem; }
+.curso-explicacion p { color: var(--color-texto-suave); font-size: 0.95rem; line-height: 1.5; }
+.curso-controles { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; justify-content: center; }
+.curso-modulo { display: flex; gap: 1rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; }
+.curso-libro { font-size: 0.8rem; color: var(--color-texto-suave); }
+.curso-nivel { font-size: 0.8rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: var(--color-borde); color: var(--color-texto-suave); margin-left: auto; }
+.curso-teoria { color: var(--color-texto-suave); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem; }
+.curso-tablero-wrap { display: flex; justify-content: center; margin: 1rem 0; }
+
+/* Apertura y táctica detalle */
+.apertura-detalle, .tactica-ejercicio { margin-top: 1rem; }
+.apertura-libro { font-size: 0.85rem; color: var(--color-texto-suave); margin-top: 0.5rem; }
+.tactica-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.tactica-badge { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: var(--color-borde); color: var(--color-texto-suave); }
+.tactica-feedback {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  text-align: center;
+}
+.tactica-feedback.exito { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid #22c55e; }
+.tactica-feedback.info { background: rgba(56, 189, 248, 0.15); color: var(--color-acento); border: 1px solid var(--color-acento); }
+.tactica-feedback.error { background: rgba(248, 113, 113, 0.15); color: #f87171; border: 1px solid #f87171; }
+.tactica-controles { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; justify-content: center; }
+.tactica-explicacion {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #0f172a;
+  border: 1px solid var(--color-borde);
+  border-radius: 8px;
+}
+.tactica-explicacion h4 { color: var(--color-acento); margin-bottom: 0.5rem; font-size: 1rem; }
+.tactica-explicacion p { color: var(--color-texto-suave); font-size: 0.95rem; line-height: 1.5; }
+
+/* Responsive para secciones nuevas */
+@media (max-width: 600px) {
+  .tablero-entreno { width: 280px; height: 280px; font-size: 1.5rem; }
+  .curso-modulo { flex-direction: column; align-items: flex-start; }
+  .curso-nivel { margin-left: 0; margin-top: 0.25rem; }
+}

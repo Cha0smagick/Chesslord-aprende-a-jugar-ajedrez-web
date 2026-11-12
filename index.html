@@ -20,7 +20,7 @@
   </div>
   <nav class="navegacion">
     <button class="btn-nav activo" data-seccion="jugar">Jugar</button>
-    <button class="btn-nav" data-seccion="curso">Curso</button>
+    <button class="btn-nav" data-seccion="curso-interactivo">Curso Interactivo</button>
     <button class="btn-nav" data-seccion="entrenamiento">Entrenamiento</button>
   </nav>
 </header>
@@ -89,6 +89,85 @@
     </div>
   </section>
 
+  <!-- ===== PANEL IZQUIERDO: CURSO INTERACTIVO (oculto por defecto) ===== -->
+  <section id="seccion-curso-interactivo" class="seccion curso-contenedor oculto">
+    <div class="card">
+      <h2>📚 Curso Interactivo — Aprender Jugando</h2>
+      <p class="curso-intro">
+        Cada lección se basa en un libro clásico de ajedrez. Lee la teoría, encuentra la jugada clave en el tablero y avanza.
+      </p>
+
+      <div class="curso-progreso">
+        <div class="curso-progreso-barra" id="curso-progreso-barra"></div>
+        <div class="curso-progreso-texto" id="curso-progreso-texto">0 / 0 lecciones</div>
+      </div>
+
+      <div id="curso-navegacion" class="curso-nav">
+        <button class="btn btn-secundario" id="btn-curso-anterior">← Anterior</button>
+        <button class="btn btn-secundario" id="btn-curso-siguiente">Siguiente →</button>
+      </div>
+
+      <div class="curso-contenido" id="curso-contenido">
+        <!-- Se renderiza dinámicamente -->
+      </div>
+
+      <div class="curso-feedback" id="curso-feedback"></div>
+      <div class="curso-explicacion oculto" id="curso-explicacion"></div>
+
+      <div class="curso-controles" id="curso-controles">
+        <button class="btn btn-secundario" id="btn-curso-pista">💡 Pista</button>
+        <button class="btn" id="btn-curso-solucion">Ver solución</button>
+        <button class="btn btn-secundario" id="btn-curso-siguiente-leccion">Siguiente lección ↗</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PANEL IZQUIERDO: APERTURAS (oculto por defecto) ===== -->
+  <section id="seccion-aperturas" class="seccion curso-contenedor oculto">
+    <div class="card">
+      <h2>♟️ Entrenamiento de Aperturas</h2>
+      <p class="entreno-intro">
+        Aprende las aperturas clásicas y sus objetivos estratégicos. Reconoce los primeros movimientos y comprende el plan detrás de cada uno.
+      </p>
+      <div class="apertura-lista" id="apertura-lista"></div>
+      <div class="apertura-detalle oculto" id="apertura-detalle">
+        <h3 id="apertura-nombre"></h3>
+        <p id="apertura-descripcion"></p>
+        <p id="apertura-objetivo"></p>
+        <div class="apertura-libro" id="apertura-libro"></div>
+        <div id="tablero-apertura" class="tablero-entreno"></div>
+        <div id="coords-apertura" class="coordenadas"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PANEL IZQUIERDO: TÁCTICA (oculto por defecto) ===== -->
+  <section id="seccion-tactica" class="seccion curso-contenedor oculto">
+    <div class="card">
+      <h2>⚡ Entrenamiento de Táctica</h2>
+      <p class="entreno-intro">
+        Practica motivos tácticos clásicos: clavada, doble ataque, enfilada, distracción y más. Encuentra la jugada ganadora.
+      </p>
+      <div class="tactica-lista" id="tactica-lista"></div>
+      <div class="tactica-ejercicio oculto" id="tactica-ejercicio">
+        <div class="tactica-header">
+          <h3 id="tactica-nombre"></h3>
+          <span class="tactica-badge" id="tactica-nivel"></span>
+        </div>
+        <p id="tactica-descripcion"></p>
+        <div id="tablero-tactica" class="tablero-entreno"></div>
+        <div id="coords-tactica" class="coordenadas"></div>
+        <div class="tactica-feedback" id="tactica-feedback"></div>
+        <div class="tactica-controles">
+          <button class="btn btn-secundario" id="tactica-pista">💡 Pista</button>
+          <button class="btn" id="tactica-solucion">Ver solución</button>
+          <button class="btn btn-secundario" id="tactica-siguiente">Siguiente ↗</button>
+        </div>
+        <div id="tactica-explicacion" class="tactica-explicacion oculto"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- ===== PANEL DERECHO: NIVELES / CONTROLES ===== -->
   <aside class="panel-lateral">
     <div class="card">
@@ -134,6 +213,10 @@
   import { Board } from './js/chesslogic.js';
   import { ChessGame } from './js/game.js';
   import { BLANCO, NEGRO } from './js/chessconstants.js';
+  import { CourseEngine } from './js/course-engine.js';
+  import { CURSO_MODULOS } from './js/course-data.js';
+  import { APERTURAS } from './js/openings-data.js';
+  import { TACTICAS } from './js/tactics-data.js';
 
   /* ---------- Referencias del DOM ---------- */
   const boardEl = document.getElementById('tablero');
@@ -150,7 +233,50 @@
   const seccionJugar = document.getElementById('seccion-jugar');
   const seccionCurso = document.getElementById('seccion-curso');
   const seccionEntrenamiento = document.getElementById('seccion-entrenamiento');
+  const seccionCursoInteractivo = document.getElementById('seccion-curso-interactivo');
+  const seccionAperturas = document.getElementById('seccion-aperturas');
+  const seccionTactica = document.getElementById('seccion-tactica');
   const btnNavs = document.querySelectorAll('.btn-nav');
+
+  // Course engine (lecciones interactivas)
+  const courseEngine = new CourseEngine(CURSO_MODULOS, renderCursoInteractivo);
+
+  // Referencias curso interactivo
+  const cursoContenidoEl = document.getElementById('curso-contenido');
+  const cursoFeedbackEl = document.getElementById('curso-feedback');
+  const cursoExplicacionEl = document.getElementById('curso-explicacion');
+  const cursoControlesEl = document.getElementById('curso-controles');
+  const btnCursoAnterior = document.getElementById('btn-curso-anterior');
+  const btnCursoSiguiente = document.getElementById('btn-curso-siguiente');
+  const btnCursoPista = document.getElementById('btn-curso-pista');
+  const btnCursoSolucion = document.getElementById('btn-curso-solucion');
+  const btnCursoSiguienteLeccion = document.getElementById('btn-curso-siguiente-leccion');
+  const cursoProgresoBarraEl = document.getElementById('curso-progreso-barra');
+  const cursoProgresoTextoEl = document.getElementById('curso-progreso-texto');
+
+  // Referencias aperturas
+  const aperturaListaEl = document.getElementById('apertura-lista');
+  const aperturaDetalleEl = document.getElementById('apertura-detalle');
+  const aperturaNombreEl = document.getElementById('apertura-nombre');
+  const aperturaDescripcionEl = document.getElementById('apertura-descripcion');
+  const aperturaObjetivoEl = document.getElementById('apertura-objetivo');
+  const aperturaLibroEl = document.getElementById('apertura-libro');
+  const aperturaTableroEl = document.getElementById('tablero-apertura');
+  const aperturaCoordsEl = document.getElementById('coords-apertura');
+
+  // Referencias táctica
+  const tacticaListaEl = document.getElementById('tactica-lista');
+  const tacticaEjEl = document.getElementById('tactica-ejercicio');
+  const tacticaNombreEl = document.getElementById('tactica-nombre');
+  const tacticaNivelEl = document.getElementById('tactica-nivel');
+  const tacticaDescripcionEl = document.getElementById('tactica-descripcion');
+  const tacticaTableroEl = document.getElementById('tablero-tactica');
+  const tacticaCoordsEl = document.getElementById('coords-tactica');
+  const tacticaFeedbackEl = document.getElementById('tactica-feedback');
+  const tacticaExplicacionEl = document.getElementById('tactica-explicacion');
+  const tacticaPista = document.getElementById('tactica-pista');
+  const tacticaSolucion = document.getElementById('tactica-solucion');
+  const tacticaSiguiente = document.getElementById('tactica-siguiente');
 
   // Glifo sólido para ambos bandos; el color lo decide el CSS según el bando.
   const GLIFO_PIEZA = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
@@ -420,11 +546,20 @@
       btn.classList.add('activo');
       const esJugar = btn.dataset.seccion === 'jugar';
       const esEntreno = btn.dataset.seccion === 'entrenamiento';
+      const esCursoInteractivo = btn.dataset.seccion === 'curso-interactivo';
+      const esAperturas = btn.dataset.seccion === 'aperturas';
+      const esTactica = btn.dataset.seccion === 'tactica';
       seccionJugar.classList.toggle('oculto', !esJugar);
-      seccionCurso.classList.toggle('oculto', esJugar || esEntreno);
+      seccionCurso.classList.toggle('oculto', esJugar || esEntreno || esCursoInteractivo || esAperturas || esTactica);
       seccionEntrenamiento.classList.toggle('oculto', !esEntreno);
-      if (!esJugar && !esEntreno) renderCurso();
+      seccionCursoInteractivo.classList.toggle('oculto', !esCursoInteractivo);
+      seccionAperturas.classList.toggle('oculto', !esAperturas);
+      seccionTactica.classList.toggle('oculto', !esTactica);
+      if (!esJugar && !esEntreno && !esCursoInteractivo && !esAperturas && !esTactica) renderCurso();
       if (esEntreno) renderEntrenamiento();
+      if (esCursoInteractivo) renderCursoInteractivo();
+      if (esAperturas) renderAperturas();
+      if (esTactica) renderTactica();
     });
   });
 
@@ -856,6 +991,264 @@
     entrenoFeedbackEl.textContent = '';
     entrenoExplicacionEl.classList.add('oculto');
     renderListaEntrenamiento();
+  });
+
+  /* ---------- Curso interactivo (CourseEngine) ---------- */
+  const PIEZAS_UNICODE = {
+    'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
+    'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
+  };
+
+  function renderTableroSimple(containerEl, grid, onClick) {
+    containerEl.replaceChildren();
+    for (let f = 0; f < 8; f++) {
+      for (let c = 0; c < 8; c++) {
+        const casilla = document.createElement('div');
+        casilla.className = `casilla-entreno ${(f + c) % 2 === 0 ? 'clara' : 'oscura'}`;
+        casilla.dataset.c = c;
+        casilla.dataset.f = f;
+        const ficha = grid[f][c];
+        if (ficha !== ' ') {
+          const span = document.createElement('span');
+          span.className = 'pieza-entreno';
+          span.textContent = PIEZAS_UNICODE[ficha];
+          casilla.appendChild(span);
+        }
+        if (onClick) casilla.addEventListener('click', () => onClick(c, f));
+        containerEl.appendChild(casilla);
+      }
+    }
+    const cols = 'abcdefgh';
+    const coords = containerEl.parentNode.querySelector('.coordenadas') || document.createElement('div');
+    coords.className = 'coordenadas';
+    for (let c = 0; c < 8; c++) {
+      const d = document.createElement('div');
+      d.textContent = cols[c];
+      coords.appendChild(d);
+    }
+    if (!containerEl.parentNode.querySelector('.coordenadas')) containerEl.parentNode.appendChild(coords);
+  }
+
+  function renderCursoInteractivo() {
+    const state = courseEngine.getState();
+    const leccion = state.leccion;
+    if (!leccion) {
+      cursoContenidoEl.innerHTML = '<p>No hay lecciones disponibles.</p>';
+      return;
+    }
+
+    // Progreso
+    const pct = Math.round((state.progreso.completadas / state.progreso.total) * 100);
+    cursoProgresoBarraEl.style.width = pct + '%';
+    cursoProgresoTextoEl.textContent = `${state.progreso.completadas} / ${state.progreso.total} lecciones`;
+
+    // Contenido
+    cursoContenidoEl.innerHTML = `
+      <div class="curso-modulo">
+        <span class="curso-libro">${leccion.libro}</span>
+        <h3>${leccion.tema}</h3>
+        <span class="curso-nivel">Nivel: ${leccion.nivel}</span>
+      </div>
+      <p class="curso-teoria">${leccion.teoria}</p>
+      <div class="curso-tablero-wrap">
+        <div id="tablero-curso" class="tablero-entreno"></div>
+        <div id="coords-curso" class="coordenadas"></div>
+      </div>
+    `;
+
+    renderTableroSimple(document.getElementById('tablero-curso'), leccion.grid, (c, f) => {
+      if (state.estado !== 'idle') return;
+      courseEngine.seleccionar(c, f);
+      renderCursoInteractivo();
+    });
+
+    // Feedback
+    if (state.mensaje) {
+      cursoFeedbackEl.textContent = state.mensaje;
+      cursoFeedbackEl.className = 'curso-feedback ' +
+        (state.estado === 'correcto' ? 'exito' : state.estado === 'incorrecto' ? 'info' : 'error');
+      cursoFeedbackEl.classList.remove('oculto');
+    } else {
+      cursoFeedbackEl.classList.add('oculto');
+    }
+
+    // Explicación
+    if (state.explicacionVisible) {
+      cursoExplicacionEl.innerHTML = `<h4>📖 Teoría y explicación</h4><p>${leccion.explicacion}</p>`;
+      cursoExplicacionEl.classList.remove('oculto');
+    } else {
+      cursoExplicacionEl.classList.add('oculto');
+    }
+
+    // Controles
+    btnCursoAnterior.disabled = !state.tieneAnterior;
+    btnCursoSiguiente.disabled = !state.tieneSiguiente;
+    btnCursoSiguienteLeccion.disabled = state.estado !== 'correcto' || !state.tieneSiguiente;
+    if (state.estado === 'correcto') {
+      btnCursoSiguienteLeccion.textContent = '✅ Siguiente lección';
+    } else {
+      btnCursoSiguienteLeccion.textContent = 'Siguiente lección ↗';
+    }
+
+    // Resaltar casilla seleccionada
+    document.querySelectorAll('#tablero-curso .casilla-entreno').forEach(el => {
+      el.classList.remove('seleccionada');
+      if (state.leccionSel && Number(el.dataset.c) === state.leccionSel.c && Number(el.dataset.f) === state.leccionSel.f) {
+        el.classList.add('seleccionada');
+      }
+    });
+  }
+
+  btnCursoAnterior.addEventListener('click', () => {
+    courseEngine.leccionAnterior();
+    renderCursoInteractivo();
+  });
+
+  btnCursoSiguiente.addEventListener('click', () => {
+    courseEngine.siguienteLeccion();
+    renderCursoInteractivo();
+  });
+
+  btnCursoPista.addEventListener('click', () => {
+    courseEngine.mostrarPista();
+    renderCursoInteractivo();
+  });
+
+  btnCursoSolucion.addEventListener('click', () => {
+    courseEngine.mostrarSolucion();
+    renderCursoInteractivo();
+  });
+
+  btnCursoSiguienteLeccion.addEventListener('click', () => {
+    courseEngine.siguienteLeccion();
+    renderCursoInteractivo();
+  });
+
+  /* ---------- Aperturas ---------- */
+  function renderAperturas() {
+    aperturaListaEl.replaceChildren();
+    APERTURAS.forEach((ap) => {
+      const item = document.createElement('div');
+      item.className = 'entreno-item';
+      item.innerHTML = `
+        <div class="entreno-item-info">
+          <strong>${ap.nombre}</strong>
+          <span class="entreno-item-tema">${ap.libro}</span>
+          <span class="entreno-item-libro">${ap.descripcion}</span>
+        </div>
+        <span class="entreno-item-nivel">${ap.nivel}</span>
+      `;
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.entreno-item').forEach((x) => x.classList.remove('activo'));
+        item.classList.add('activo');
+        aperturaNombreEl.textContent = ap.nombre;
+        aperturaDescripcionEl.textContent = ap.descripcion;
+        aperturaObjetivoEl.textContent = 'Objetivo: ' + ap.objetivo;
+        aperturaLibroEl.innerHTML = `<strong>Fuente:</strong> ${ap.libroReferencia}`;
+        aperturaDetalleEl.classList.remove('oculto');
+        renderTableroSimple(aperturaTableroEl, [
+          ['r','n','b','q','k','b','n','r'],
+          ['p','p','p','p','p','p','p','p'],
+          [' ',' ',' ',' ',' ',' ',' ',' '],
+          [' ',' ',' ',' ',' ',' ',' ',' '],
+          [' ',' ',' ',' ',' ',' ',' ',' '],
+          [' ',' ',' ',' ',' ',' ',' ',' '],
+          ['P','P','P','P','P','P','P','P'],
+          ['R','N','B','Q','K','B','N','R']
+        ]);
+      });
+      aperturaListaEl.appendChild(item);
+    });
+    aperturaDetalleEl.classList.add('oculto');
+  }
+
+  /* ---------- Táctica ---------- */
+  function renderTactica() {
+    tacticaListaEl.replaceChildren();
+    TACTICAS.forEach((tac) => {
+      const item = document.createElement('div');
+      item.className = 'entreno-item';
+      item.innerHTML = `
+        <div class="entreno-item-info">
+          <strong>${tac.nombre}</strong>
+          <span class="entreno-item-tema">${tac.libro}</span>
+          <span class="entreno-item-libro">${tac.descripcion}</span>
+        </div>
+        <span class="entreno-item-nivel">${tac.nivel}</span>
+      `;
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.entreno-item').forEach((x) => x.classList.remove('activo'));
+        item.classList.add('activo');
+        tacticaNombreEl.textContent = tac.nombre;
+        tacticaNivelEl.textContent = tac.nivel;
+        tacticaDescripcionEl.textContent = tac.descripcion;
+        tacticaEjEl.classList.remove('oculto');
+        tacticaFeedbackEl.textContent = '';
+        tacticaFeedbackEl.className = 'tactica-feedback';
+        tacticaExplicacionEl.classList.add('oculto');
+        renderTableroSimple(tacticaTableroEl, tac.grid, (c, f) => {
+          if (tac.completada) return;
+          // Validar jugada contra solución
+          // Simplificado: si hace clic en la casilla de origen y destino de la solución
+          // Aquí usamos un estado simple de selección
+          window._tacSel = window._tacSel || null;
+          if (!window._tacSel) {
+            const ficha = tac.grid[f][c];
+            if (ficha !== ' ' && tacBoard.getColor(ficha) === tac.turno) {
+              window._tacSel = { c, f };
+              document.querySelectorAll('#tablero-tactica .casilla-entreno').forEach(el => el.classList.remove('seleccionada'));
+              el.classList.add('seleccionada');
+            }
+          } else {
+            const origen = window._tacSel;
+            const [[cO, fO], [cD, fD]] = tac.jugadaEsperada;
+            const esCorrecto = origen.c === cO && origen.f === fO && c === cD && f === fD;
+            const esLegal = tacBoard.isValidMove([[origen.c, origen.f], [c, f]], tac.turno);
+            if (esCorrecto) {
+              tacticaFeedbackEl.textContent = '✅ ¡Correcto! Motivo táctico aplicado.';
+              tacticaFeedbackEl.className = 'tactica-feedback exito';
+              tacticaExplicacionEl.innerHTML = `<h4>📖 Explicación</h4><p>${tac.explicacion}</p>`;
+              tacticaExplicacionEl.classList.remove('oculto');
+              tac.completada = true;
+            } else if (esLegal) {
+              tacticaFeedbackEl.textContent = '⚠️ Legal, pero no es la jugada clave.';
+              tacticaFeedbackEl.className = 'tactica-feedback info';
+            } else {
+              tacticaFeedbackEl.textContent = '❌ Ilegal.';
+              tacticaFeedbackEl.className = 'tactica-feedback error';
+            }
+            window._tacSel = null;
+          }
+        });
+        const tacBoard = new Board();
+        tacBoard.grid = tac.grid.map(r => [...r]);
+      });
+      tacticaListaEl.appendChild(item);
+    });
+    tacticaEjEl.classList.add('oculto');
+  }
+
+  tacticaPista.addEventListener('click', () => {
+    // Se maneja dentro del click del tablero; aquí dejamos un mensaje genérico
+  });
+
+  tacticaSolucion.addEventListener('click', () => {
+    const item = document.querySelector('.entreno-item.activo');
+    if (!item) return;
+    const tac = TACTICAS.find(t => t.nombre === tacticaNombreEl.textContent);
+    if (tac) {
+      tacticaFeedbackEl.textContent = '🔎 Solución revelada.';
+      tacticaFeedbackEl.className = 'tactica-feedback info';
+      tacticaExplicacionEl.innerHTML = `<h4>📖 Solución</h4><p>${tac.explicacion}</p>`;
+      tacticaExplicacionEl.classList.remove('oculto');
+    }
+  });
+
+  tacticaSiguiente.addEventListener('click', () => {
+    tacticaEjEl.classList.add('oculto');
+    tacticaFeedbackEl.textContent = '';
+    tacticaExplicacionEl.classList.add('oculto');
+    renderTactica();
   });
 
   /* ---------- Arranque ---------- */
