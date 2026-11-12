@@ -21,7 +21,6 @@
   <nav class="navegacion">
     <button class="btn-nav activo" data-seccion="jugar">Jugar</button>
     <button class="btn-nav" data-seccion="curso">Curso</button>
-    <button class="btn-nav" data-seccion="niveles">Niveles</button>
   </nav>
 </header>
 
@@ -29,8 +28,8 @@
   <!-- ===== PANEL IZQUIERDO: TABLERO ===== -->
   <section id="seccion-jugar" class="seccion activa">
     <div class="tablero-contenedor">
-      <div id="tablero" class="tablero"></div>
-      <div class="coordenadas" id="coords"></div>
+      <div id="tablero" class="tablero" role="grid" aria-label="Tablero de ajedrez"></div>
+      <div class="coordenadas" id="coords" aria-hidden="true"></div>
     </div>
 
     <div id="estado" class="estado turno">Turno: Blancas</div>
@@ -40,10 +39,8 @@
       <button class="btn" id="btn-reiniciar">⟳ Nueva partida</button>
     </div>
 
-    <div id="mensaje" class="mensaje oculto"></div>
-
     <div class="historial" id="historial">
-      <div style="font-size:0.8rem; color:var(--color-texto-suave); margin-bottom:0.5rem">Historial</div>
+      <div class="historial-titulo">Historial</div>
       <div id="lista-jugadas"></div>
     </div>
   </section>
@@ -52,10 +49,9 @@
   <section id="seccion-curso" class="seccion curso-contenedor oculto">
     <div class="card">
       <h2>📚 Curso de Ajedrez</h2>
-      <p style="color:var(--color-texto-suave); font-size:0.9rem; margin-bottom:1rem">
+      <p class="curso-intro">
         Aprende desde cero o mejora tu nivel. Contenido creado por <strong>ALEJANDRO QUINTERO RUIZ</strong>.
       </p>
-
       <div id="modulos-curso"></div>
     </div>
   </section>
@@ -65,37 +61,33 @@
     <div class="card">
       <h2>⚙️ Nivel de IA</h2>
       <div class="niveles">
-        <button class="btn-nivel activo" data-nivel="BASICO">
+        <button class="btn-nivel" data-nivel="BASICO">
           <strong>Básico</strong> — Para principiantes (IA débil)
         </button>
-        <button class="btn-nivel" data-nivel="MEDIO">
+        <button class="btn-nivel activo" data-nivel="MEDIO">
           <strong>Medio</strong> — Jugador intermedio
         </button>
         <button class="btn-nivel" data-nivel="MAESTRO">
-          <strong>Maestro</strong> — IA fuerte (minimax profundidad 6)
+          <strong>Maestro</strong> — IA fuerte (busca varios segundos)
         </button>
       </div>
+      <p class="nota">El nivel se aplica al instante, sin reiniciar la partida.</p>
 
-      <div style="margin-top:1rem; font-size:0.85rem; color:var(--color-texto-suave)">
-        Eliges con qué color juegas. La IA es el contrario.
+      <div class="fila-botones">
+        <button class="btn btn-secundario btn-color" id="btn-color-blancas">Jugar Blancas</button>
+        <button class="btn btn-secundario btn-color activo" id="btn-color-negras">Jugar Negras</button>
       </div>
-
-      <div style="margin-top:1rem; display:flex; gap:0.5rem">
-        <button class="btn btn-secundario" id="btn-color-blancas">Jugar Blancas</button>
-        <button class="btn btn-secundario" id="btn-color-negras">Jugar Negras</button>
-      </div>
+      <p class="nota">Cambiar de color empieza una partida nueva. La IA lleva el otro bando.</p>
     </div>
 
     <div class="card">
       <h2>ℹ️ Estado</h2>
-      <div id="estado-detalle" style="font-size:0.9rem; color:var(--color-texto-suave)">
-        Esperando movimiento…
-      </div>
+      <div id="estado-detalle" class="texto-suave">Esperando movimiento…</div>
     </div>
 
     <div class="card">
       <h2>🏆 Resultado</h2>
-      <div id="resultado" style="font-size:0.95rem; color:var(--color-texto-suave); min-height:1.2rem">—</div>
+      <div id="resultado" class="resultado">—</div>
     </div>
   </aside>
 </main>
@@ -106,16 +98,13 @@
 </footer>
 
 <script type="module">
-  import { Board } from './js/chesslogic.js';
-  import { ChessEngine, DIFICULTADES } from './js/chessai.js';
   import { ChessGame } from './js/game.js';
   import { BLANCO, NEGRO } from './js/chessconstants.js';
 
-  /* ---------- Estado de la aplicación ---------- */
+  /* ---------- Referencias del DOM ---------- */
   const boardEl = document.getElementById('tablero');
   const coordsEl = document.getElementById('coords');
   const estadoEl = document.getElementById('estado');
-  const mensajeEl = document.getElementById('mensaje');
   const historialEl = document.getElementById('lista-jugadas');
   const btnDeshacer = document.getElementById('btn-deshacer');
   const btnReiniciar = document.getElementById('btn-reiniciar');
@@ -124,256 +113,280 @@
   const btnNiveles = document.querySelectorAll('.btn-nivel');
   const estadoDetalle = document.getElementById('estado-detalle');
   const resultadoEl = document.getElementById('resultado');
-
   const seccionJugar = document.getElementById('seccion-jugar');
   const seccionCurso = document.getElementById('seccion-curso');
   const btnNavs = document.querySelectorAll('.btn-nav');
 
+  // Glifo sólido para ambos bandos; el color lo decide el CSS según el bando.
+  const GLIFO_PIEZA = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
+  const NOMBRE_PIEZA = {
+    r: 'torre negra', n: 'caballo negro', b: 'alfil negro', q: 'dama negra', k: 'rey negro', p: 'peón negro',
+    R: 'torre blanca', N: 'caballo blanco', B: 'alfil blanco', Q: 'dama blanca', K: 'rey blanco', P: 'peón blanco'
+  };
+  const COLS = 'abcdefgh';
+
   let game = null;
   let casillaSeleccionada = null; // {c, f}
   let casillasValidas = [];
+  let orientacion = BLANCO;       // desde qué lado se dibuja el tablero
 
   /* ---------- Inicialización ---------- */
   function crearJuego() {
+    // El controlador avisa al crear y, si abre la IA, mueve solo.
     game = new ChessGame(render);
-    game.setLevel('MEDIO');
-    game.setHumanColor(NEGRO);
-    render(game.getState());
-    // Si empieza la IA, que se mueva automáticamente
-    if (game.turn !== game.humanColor && !game.gameOver) {
-      game.iaMove();
-    }
   }
 
-  /* ---------- Renderizado del tablero ---------- */
-  const PIEZAS_UNICODE = {
-    'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
-    'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
-  };
+  /* ---------- Renderizado ---------- */
+  // Convierte coordenadas lógicas (orden del motor) a la casilla visual.
+  const aFilaVisual = (f) => (orientacion === BLANCO ? f : 7 - f);
+  const aColVisual = (c) => (orientacion === BLANCO ? c : 7 - c);
 
   function renderizarTablero(grid) {
-    boardEl.innerHTML = '';
-    for (let f = 0; f < 8; f++) {
-      for (let c = 0; c < 8; c++) {
+    const fragmento = document.createDocumentFragment();
+    for (let rf = 0; rf < 8; rf++) {
+      for (let rc = 0; rc < 8; rc++) {
+        const c = orientacion === BLANCO ? rc : 7 - rc;
+        const f = orientacion === BLANCO ? rf : 7 - rf;
         const casilla = document.createElement('div');
-        const esClara = (f + c) % 2 === 0;
-        casilla.className = `casilla ${esClara ? 'clara' : 'oscura'}`;
+        casilla.className = `casilla ${(f + c) % 2 === 0 ? 'clara' : 'oscura'}`;
         casilla.dataset.c = c;
         casilla.dataset.f = f;
-
+        casilla.setAttribute('role', 'gridcell');
+        casilla.tabIndex = rf === 0 && rc === 0 ? 0 : -1; // foco único, se mueve con flechas
         const ficha = grid[f][c];
+        casilla.setAttribute('aria-label',
+          `${COLS[c]}${8 - f}${ficha === ' ' ? '' : ', ' + NOMBRE_PIEZA[ficha]}`);
         if (ficha !== ' ') {
           const span = document.createElement('span');
-          span.className = 'pieza';
-          span.textContent = PIEZAS_UNICODE[ficha];
+          span.className = 'pieza ' + (ficha === ficha.toUpperCase() ? 'blanca' : 'negra');
+          span.textContent = GLIFO_PIEZA[ficha.toLowerCase()];
           casilla.appendChild(span);
         }
-
-        casilla.addEventListener('click', () => handleClickCasilla(c, f));
-        boardEl.appendChild(casilla);
+        fragmento.appendChild(casilla);
       }
     }
+    boardEl.replaceChildren(fragmento);
 
-    // Coordenadas
-    const cols = 'abcdefgh';
-    let htmlCoords = '';
-    for (let c = 0; c < 8; c++) htmlCoords += `<div>${cols[c]}</div>`;
-    coordsEl.innerHTML = htmlCoords;
+    const letras = orientacion === BLANCO ? COLS : [...COLS].reverse().join('');
+    coordsEl.innerHTML = [...letras].map((l) => `<div>${l}</div>`).join('');
   }
 
-  function resaltarCasillas() {
-    document.querySelectorAll('.casilla').forEach(el => {
-      el.classList.remove('seleccionada', 'valida', 'jaque');
-    });
+  function resaltarCasillas(state) {
+    const seleccionada = casillaSeleccionada
+      ? boardEl.querySelector(`[data-c="${casillaSeleccionada.c}"][data-f="${casillaSeleccionada.f}"]`)
+      : null;
+    if (seleccionada) seleccionada.classList.add('seleccionada');
 
-    if (casillaSeleccionada) {
-      const sel = document.querySelector(`[data-c="${casillaSeleccionada.c}"][data-f="${casillaSeleccionada.f}"]`);
-      if (sel) sel.classList.add('seleccionada');
+    // Última jugada
+    const ultima = state.moveHistory[state.moveHistory.length - 1];
+    if (ultima) {
+      for (const [c, f] of ultima.move) {
+        const el = boardEl.querySelector(`[data-c="${c}"][data-f="${f}"]`);
+        if (el) el.classList.add('ultima');
+      }
     }
 
-    casillasValidas.forEach(move => {
-      const [[cO, fO], [cD, fD]] = move;
-      // Solo mostrar las válidas desde la casilla seleccionada
-      if (casillaSeleccionada && cO === casillaSeleccionada.c && fO === casillaSeleccionada.f) {
-        const el = document.querySelector(`[data-c="${cD}"][data-f="${fD}"]`);
-        if (el) el.classList.add('valida');
+    if (casillaSeleccionada) {
+      for (const [[cO, fO], [cD, fD]] of casillasValidas) {
+        if (cO !== casillaSeleccionada.c || fO !== casillaSeleccionada.f) continue;
+        const el = boardEl.querySelector(`[data-c="${cD}"][data-f="${fD}"]`);
+        if (!el) continue;
+        el.classList.add('valida');
+        if (state.grid[fD][cD] !== ' ') el.classList.add('captura');
       }
-    });
+    }
 
-    // Jaque
-    const state = game.getState();
     if (state.inCheck && !state.gameOver) {
-      // Encontrar rey del turno actual
-      const reyChar = state.turn === BLANCO ? 'K' : 'k';
+      const rey = state.turn === BLANCO ? 'K' : 'k';
       for (let f = 0; f < 8; f++) {
         for (let c = 0; c < 8; c++) {
-          if (state.grid[f][c] === reyChar) {
-            const el = document.querySelector(`[data-c="${c}"][data-f="${f}"]`);
+          if (state.grid[f][c] === rey) {
+            const el = boardEl.querySelector(`[data-c="${c}"][data-f="${f}"]`);
             if (el) el.classList.add('jaque');
-            break;
           }
         }
       }
     }
   }
 
+  const TEXTO_TABLAS = {
+    ahogado: '¡AHOGADO! Tablas.',
+    repeticion: 'Tablas por repetición triple.',
+    cincuenta: 'Tablas por la regla de 50 movimientos.',
+    material: 'Tablas por material insuficiente.'
+  };
+
   function actualizarEstado(state) {
-    const turnoTexto = state.turn === BLANCO ? 'Blancas' : 'Negras';
-    estadoEl.textContent = state.gameOver ? 'Partida finalizada' : `Turno: ${turnoTexto}`;
+    const turno = state.turn === BLANCO ? 'Blancas' : 'Negras';
+    estadoEl.textContent = state.gameOver ? 'Partida finalizada' : `Turno: ${turno}`;
     estadoEl.className = 'estado ' + (state.gameOver ? 'fin' : state.inCheck ? 'jaque' : 'turno');
 
-    if (state.gameOver) {
-      let texto = '';
-      if (state.result === 'mate') {
-        texto = `¡JAQUE MATE! Gana ${state.winner === BLANCO ? 'Blancas' : 'Negras'}`;
-      } else if (state.result === 'ahogado') {
-        texto = '¡AHOGADO! Tablas.';
-      }
-      resultadoEl.textContent = texto;
-      resultadoEl.style.color = state.result === 'mate' ? '#f87171' : '#22c55e';
-      btnDeshacer.disabled = true;
+    if (state.result === 'mate') {
+      resultadoEl.textContent = `¡JAQUE MATE! Gana ${state.winner === BLANCO ? 'Blancas' : 'Negras'}`;
+      resultadoEl.className = 'resultado victoria';
+    } else if (TEXTO_TABLAS[state.result]) {
+      resultadoEl.textContent = TEXTO_TABLAS[state.result];
+      resultadoEl.className = 'resultado tablas';
     } else {
       resultadoEl.textContent = '—';
-      btnDeshacer.disabled = false;
+      resultadoEl.className = 'resultado';
     }
 
-    estadoDetalle.textContent = state.inCheck ? `⚠️ ${turnoTexto} está en JAQUE` : `Esperando movimiento de ${turnoTexto}`;
+    if (state.gameOver) {
+      estadoDetalle.textContent = 'La partida ha terminado. Puedes deshacer o empezar otra.';
+    } else if (state.thinking) {
+      estadoDetalle.textContent = '🤖 La IA está pensando…';
+    } else if (state.inCheck) {
+      estadoDetalle.textContent = `⚠️ ${turno} está en JAQUE`;
+    } else {
+      estadoDetalle.textContent = `Esperando movimiento de ${turno}`;
+    }
 
-    // Historial
-    historialEl.innerHTML = '';
+    historialEl.replaceChildren();
     state.moveHistory.forEach((h, i) => {
-      const num = Math.floor(i / 2) + 1;
-      const esBlanca = i % 2 === 0;
-      const div = document.createElement('div');
-      div.className = 'jugada';
-      if (esBlanca) {
-        div.innerHTML = `<span class="numero">${num}.</span><span>${ChessGame.notacion(h.move)}</span>`;
+      if (i % 2 === 0) {
+        const div = document.createElement('div');
+        div.className = 'jugada';
+        const num = document.createElement('span');
+        num.className = 'numero';
+        num.textContent = `${i / 2 + 1}.`;
+        const jugada = document.createElement('span');
+        jugada.textContent = h.san;
+        div.append(num, jugada);
+        historialEl.appendChild(div);
       } else {
         const prev = historialEl.lastElementChild;
-        if (prev) {
-          const span = document.createElement('span');
-          span.textContent = ChessGame.notacion(h.move);
-          prev.appendChild(span);
-        }
+        const jugada = document.createElement('span');
+        jugada.textContent = h.san;
+        if (prev) prev.appendChild(jugada);
       }
-      if (esBlanca) historialEl.appendChild(div);
     });
     historialEl.scrollTop = historialEl.scrollHeight;
+    const contenedorHistorial = document.getElementById('historial');
+    contenedorHistorial.scrollTop = contenedorHistorial.scrollHeight;
   }
 
   function render(state) {
+    orientacion = state.humanColor;
     renderizarTablero(state.grid);
-    resaltarCasillas();
+    resaltarCasillas(state);
     actualizarEstado(state);
-    mensajeEl.classList.add('oculto');
   }
 
   /* ---------- Interacción con el tablero ---------- */
+  function seleccionar(c, f) {
+    casillaSeleccionada = { c, f };
+    casillasValidas = game.board.getLegalMoves(game.turn)
+      .filter((m) => m[0][0] === c && m[0][1] === f);
+    render(game.getState());
+  }
+
+  function limpiarSeleccion() {
+    casillaSeleccionada = null;
+    casillasValidas = [];
+  }
+
   function handleClickCasilla(c, f) {
-    if (game.gameOver) return;
-    if (game.turn !== game.humanColor) return;
+    if (game.gameOver || game.turn !== game.humanColor) return;
+    const ficha = game.board.grid[f][c];
+    const esPropia = ficha !== ' ' && game.board.getColor(ficha) === game.turn;
 
-    const grid = game.board.grid;
-    const ficha = grid[f][c];
-
-    // Si ya hay una casilla seleccionada y clickeo una válida desde ella → mover
     if (casillaSeleccionada) {
-      const move = [[casillaSeleccionada.c, casillaSeleccionada.f], [c, f]];
-      const esValida = casillasValidas.some(m => m[1][0] === c && m[1][1] === f);
-      if (esValida) {
-        game.tryMove(move);
-        casillaSeleccionada = null;
-        casillasValidas = [];
-        render(game.getState());
-        if (game.turn !== game.humanColor && !game.gameOver) {
-          game.iaMove();
-        }
+      const esDestino = casillasValidas.some((m) => m[1][0] === c && m[1][1] === f);
+      if (esDestino) {
+        const origen = casillaSeleccionada;
+        limpiarSeleccion(); // antes de mover, para que el render no marque el origen
+        if (!game.tryMove([[origen.c, origen.f], [c, f]])) render(game.getState());
         return;
       }
-      // Si clickeo otra casilla propia, cambio la selección
-      if (ficha !== ' ' && game.board.getColor(ficha) === game.turn) {
-        casillaSeleccionada = { c, f };
-        casillasValidas = game.board.getLegalMoves(game.turn).filter(m => m[0][0] === c && m[0][1] === f);
-        render(game.getState());
-        return;
-      }
-      // Deseleccionar si clickeo fuera
-      casillaSeleccionada = null;
-      casillasValidas = [];
+      if (esPropia) { seleccionar(c, f); return; }
+      limpiarSeleccion();
       render(game.getState());
       return;
     }
-
-    // Primera selección: debe ser una pieza del turno
-    if (ficha !== ' ' && game.board.getColor(ficha) === game.turn) {
-      casillaSeleccionada = { c, f };
-      casillasValidas = game.board.getLegalMoves(game.turn).filter(m => m[0][0] === c && m[0][1] === f);
-      render(game.getState());
-    }
+    if (esPropia) seleccionar(c, f);
   }
+
+  // Delegación: un único listener para las 64 casillas.
+  boardEl.addEventListener('click', (e) => {
+    const casilla = e.target.closest('.casilla');
+    if (!casilla || !game) return;
+    handleClickCasilla(Number(casilla.dataset.c), Number(casilla.dataset.f));
+  });
+
+  boardEl.addEventListener('keydown', (e) => {
+    const casilla = e.target.closest('.casilla');
+    if (!casilla || !game) return;
+
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClickCasilla(Number(casilla.dataset.c), Number(casilla.dataset.f));
+      return;
+    }
+
+    const paso = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
+    if (!paso) return;
+    e.preventDefault();
+    // El desplazamiento es visual: se calcula en la orientación en pantalla.
+    const rc = Math.min(7, Math.max(0, aColVisual(Number(casilla.dataset.c)) + paso[0]));
+    const rf = Math.min(7, Math.max(0, aFilaVisual(Number(casilla.dataset.f)) + paso[1]));
+    const destino = boardEl.querySelector(`[data-c="${aColVisual(rc)}"][data-f="${aFilaVisual(rf)}"]`);
+    if (destino) { destino.tabIndex = 0; destino.focus(); }
+  });
+
+  boardEl.addEventListener('focusin', (e) => {
+    const casilla = e.target.closest('.casilla');
+    if (!casilla) return;
+    boardEl.querySelectorAll('.casilla').forEach((el) => { el.tabIndex = -1; });
+    casilla.tabIndex = 0;
+  });
 
   /* ---------- Botones ---------- */
   btnReiniciar.addEventListener('click', () => {
+    limpiarSeleccion();
     game.reiniciar();
-    casillaSeleccionada = null;
-    casillasValidas = [];
-    render(game.getState());
   });
 
   btnDeshacer.addEventListener('click', () => {
-    if (game.deshacer()) {
-      casillaSeleccionada = null;
-      casillasValidas = [];
-      render(game.getState());
-    }
+    limpiarSeleccion();
+    if (!game.deshacer()) render(game.getState());
   });
 
+  function marcarColor(color) {
+    btnColorBlancas.classList.toggle('activo', color === BLANCO);
+    btnColorNegras.classList.toggle('activo', color === NEGRO);
+  }
+
   btnColorBlancas.addEventListener('click', () => {
+    limpiarSeleccion();
     game.setHumanColor(BLANCO);
-    game.reiniciar();
-    casillaSeleccionada = null;
-    casillasValidas = [];
-    render(game.getState());
-    btnColorBlancas.classList.add('btn');
-    btnColorNegras.classList.remove('btn');
+    marcarColor(BLANCO);
   });
 
   btnColorNegras.addEventListener('click', () => {
+    limpiarSeleccion();
     game.setHumanColor(NEGRO);
-    game.reiniciar();
-    casillaSeleccionada = null;
-    casillasValidas = [];
-    render(game.getState());
-    btnColorNegras.classList.add('btn');
-    btnColorBlancas.classList.remove('btn');
+    marcarColor(NEGRO);
   });
 
-  btnNiveles.forEach(btn => {
+  btnNiveles.forEach((btn) => {
     btn.addEventListener('click', () => {
-      btnNiveles.forEach(b => b.classList.remove('activo'));
+      btnNiveles.forEach((b) => b.classList.remove('activo'));
       btn.classList.add('activo');
       game.setLevel(btn.dataset.nivel);
-      game.reiniciar();
-      casillaSeleccionada = null;
-      casillasValidas = [];
       render(game.getState());
     });
   });
 
-  /* ---------- Navegación secciones ---------- */
-  btnNavs.forEach(btn => {
+  /* ---------- Navegación de secciones ---------- */
+  btnNavs.forEach((btn) => {
     btn.addEventListener('click', () => {
-      btnNavs.forEach(b => b.classList.remove('activo'));
+      btnNavs.forEach((b) => b.classList.remove('activo'));
       btn.classList.add('activo');
-      const sec = btn.dataset.seccion;
-      if (sec === 'jugar') {
-        seccionJugar.classList.remove('oculto');
-        seccionCurso.classList.add('oculto');
-      } else if (sec === 'curso') {
-        seccionJugar.classList.add('oculto');
-        seccionCurso.classList.remove('oculto');
-        renderCurso();
-      }
+      const esJugar = btn.dataset.seccion === 'jugar';
+      seccionJugar.classList.toggle('oculto', !esJugar);
+      seccionCurso.classList.toggle('oculto', esJugar);
+      if (!esJugar) renderCurso();
     });
   });
 
@@ -388,32 +401,52 @@
         },
         {
           titulo: 'El Rey (K / k)',
-          texto: 'El rey se mueve una casilla en cualquier dirección. Es la pieza más importante: si el rey es capturado (jaque mate), se pierde la partida.',
+          texto: 'El rey se mueve una casilla en cualquier dirección. Es la pieza más importante: si el rey recibe jaque mate, se pierde la partida.',
           ejercicio: {
-            enunciado: '¿Cuántas casillas puede alcanzar el rey desde el centro (e4)?',
-            solucion: '8',
-            feedback: ''
+            enunciado: '¿Cuántas casillas puede alcanzar el rey situado en el centro del tablero (e4)?',
+            respuestas: ['8', 'ocho'],
+            ayuda: 'Cuenta las ocho casillas que lo rodean.'
           }
         },
         {
           titulo: 'La Reina (Q / q)',
-          texto: 'La reina es la pieza más poderosa: se mueve cualquier número de casillas en horizontal, vertical o diagonal.'
+          texto: 'La reina es la pieza más poderosa: se mueve cualquier número de casillas en horizontal, vertical o diagonal.',
+          ejercicio: {
+            enunciado: '¿Cuántas direcciones distintas tiene la reina?',
+            respuestas: ['8', 'ocho'],
+            ayuda: 'Cuatro rectas y cuatro diagonales.'
+          }
         },
         {
           titulo: 'La Torre (R / r)',
-          texto: 'La torre se mueve cualquier número de casillas en horizontal o vertical. Participa en el enroque.'
+          texto: 'La torre se mueve cualquier número de casillas en horizontal o vertical. Participa en el enroque.',
+          ejercicio: {
+            enunciado: '¿Cuántas casillas alcanza una torre desde a1 en un tablero vacío?',
+            respuestas: ['14', 'catorce'],
+            ayuda: 'Siete casillas en la columna a y siete en la fila 1.'
+          }
         },
         {
           titulo: 'El Alfil (B / b)',
-          texto: 'El alfil se mueve cualquier número de casillas en diagonal. Siempre se queda en casillas del mismo color.'
+          texto: 'El alfil se mueve cualquier número de casillas en diagonal. Siempre se queda en casillas del mismo color.',
+          ejercicio: {
+            enunciado: '¿En qué línea se mueve el alfil? (horizontal, vertical o diagonal)',
+            respuestas: ['diagonal', 'en diagonal', 'diagonales'],
+            ayuda: 'Es la única pieza que nunca cambia de color de casilla.'
+          }
         },
         {
           titulo: 'El Caballo (N / n)',
-          texto: 'El caballo se mueve en "L": dos casillas en línea recta y una a un lado. Es la única pieza que puede saltar sobre otras piezas.'
+          texto: 'El caballo se mueve en "L": dos casillas en línea recta y una a un lado. Es la única pieza que puede saltar sobre otras piezas.',
+          ejercicio: {
+            enunciado: '¿Qué pieza puede saltar por encima de otras?',
+            respuestas: ['caballo', 'el caballo', 'n', 'el n'],
+            ayuda: 'Es la única que no necesita camino libre.'
+          }
         },
         {
           titulo: 'El Peón (P / p)',
-          texto: 'El peón avanza una casilla hacia adelante (dos desde su posición inicial). Captura en diagonal. Puede ser promovido a cualquier pieza (excepto rey) al llegar a la última fila.'
+          texto: 'El peón avanza una casilla hacia adelante (dos desde su posición inicial). Captura en diagonal. Al llegar a la última fila se corona: normalmente se elige dama.'
         }
       ]
     },
@@ -426,15 +459,25 @@
         },
         {
           titulo: 'Enroque',
-          texto: 'Movimiento especial del rey con una torre. El rey se mueve dos casillas hacia la torre y esta salta al otro lado. Solo se puede hacer si ninguna pieza ha movido antes y no hay piezas entre medio.'
+          texto: 'Movimiento especial del rey con una torre. El rey se mueve dos casillas hacia la torre y esta salta al otro lado. Solo se puede hacer si el rey y la torre no se han movido, no hay piezas entre medio y el rey no está en jaque ni cruza una casilla atacada.',
+          ejercicio: {
+            enunciado: '¿Cuántas casillas se mueve el rey en el enroque?',
+            respuestas: ['2', 'dos'],
+            ayuda: 'Siempre son dos, hacia la torre.'
+          }
         },
         {
           titulo: 'Captura al paso (En passant)',
-          texto: 'Si un peón avanza dos casillas desde su posición inicial y pasa junto a un peón enemigo, ese peón enemigo puede capturarlo como si hubiera avanzado solo una casilla.'
+          texto: 'Si un peón avanza dos casillas desde su posición inicial y pasa junto a un peón enemigo, ese peón enemigo puede capturarlo como si hubiera avanzado solo una casilla. Solo vale en la jugada inmediatamente siguiente.'
         },
         {
           titulo: 'Tablas por ahogado',
-          texto: 'Si el jugador cuyo turno es no tiene ningún movimiento legal y su rey no está en jaque, es ahogado: tablas.'
+          texto: 'Si el jugador al que le toca mover no tiene ningún movimiento legal y su rey no está en jaque, es ahogado: tablas.',
+          ejercicio: {
+            enunciado: '¿Cómo termina una partida por ahogado: victoria de quien ahoga o tablas?',
+            respuestas: ['tablas', 'empate', 'son tablas'],
+            ayuda: 'Nadie gana cuando falta el jaque.'
+          }
         }
       ]
     },
@@ -442,68 +485,83 @@
       titulo: 'Módulo 3 — Táctica básica',
       lecciones: [
         {
-          titulo: 'Doble ataque (Fork)',
+          titulo: 'Doble ataque (fork)',
           texto: 'Atacar dos piezas enemigas al mismo tiempo con una sola pieza, forzando a tu oponente a perder material.'
         },
         {
-          titulo: 'Absorción (Pin)',
-          texto: 'Atacar una pieza que no puede moverse porque al hacerlo dejaría al rey al descubierto (jaque).'
+          titulo: 'Clavada (pin)',
+          texto: 'Atacar una pieza que no puede moverse porque al hacerlo dejaría al descubierto una pieza más valiosa detrás, normalmente el rey.'
         },
         {
-          titulo: 'Clavada (Skewer)',
-          texto: 'Similar a la absorción, pero la pieza más valiosa está delante y debe moverse, exponiendo la pieza de menor valor detrás.'
+          titulo: 'Enfilada (skewer)',
+          texto: 'Parecida a la clavada, pero aquí la pieza valiosa está delante: al moverse expone la pieza de menor valor que está detrás, que se captura.'
         }
       ]
     }
   ];
 
+  const normalizar = (texto) => texto.trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
   function renderCurso() {
     const contenedor = document.getElementById('modulos-curso');
-    contenedor.innerHTML = '';
-    CURSO.forEach(modulo => {
+    contenedor.replaceChildren();
+    CURSO.forEach((modulo, mi) => {
       const modDiv = document.createElement('div');
       modDiv.className = 'leccion';
-      modDiv.innerHTML = `<h3 style="color:var(--color-texto); font-size:1.1rem; margin-bottom:0.5rem">${modulo.titulo}</h3>`;
-      modulo.lecciones.forEach(leccion => {
+      const h3 = document.createElement('h3');
+      h3.textContent = modulo.titulo;
+      modDiv.appendChild(h3);
+
+      modulo.lecciones.forEach((leccion, li) => {
         const lesDiv = document.createElement('div');
         lesDiv.className = 'leccion';
-        lesDiv.innerHTML = `
-          <h4>${leccion.titulo}</h4>
-          <p>${leccion.texto}</p>
-          ${leccion.ejercicio ? `
-            <div class="ejercicio">
-              <h4>❓ Ejercicio: ${leccion.ejercicio.enunciado}</h4>
-              <input type="text" id="resp-${modulo.titulo}-${leccion.titulo}" placeholder="Tu respuesta" maxlength="2">
-              <button class="btn" onclick="verificarEjercicio('${modulo.titulo}', '${leccion.titulo}')">Verificar</button>
-              <div class="feedback" id="fb-${modulo.titulo}-${leccion.titulo}"></div>
-            </div>
-          ` : ''}
-        `;
+        const h4 = document.createElement('h4');
+        h4.textContent = leccion.titulo;
+        const p = document.createElement('p');
+        p.textContent = leccion.texto;
+        lesDiv.append(h4, p);
+
+        if (leccion.ejercicio) {
+          const caja = document.createElement('div');
+          caja.className = 'ejercicio';
+          const titulo = document.createElement('h4');
+          titulo.textContent = `❓ ${leccion.ejercicio.enunciado}`;
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.maxLength = 20;
+          input.placeholder = 'Tu respuesta';
+          input.setAttribute('aria-label', leccion.ejercicio.enunciado);
+          const boton = document.createElement('button');
+          boton.className = 'btn';
+          boton.textContent = 'Verificar';
+          const feedback = document.createElement('div');
+          feedback.className = 'feedback';
+
+          const verificar = () => {
+            const valor = normalizar(input.value);
+            if (!valor) { feedback.textContent = ''; return; }
+            const acierto = leccion.ejercicio.respuestas.some((r) => normalizar(r) === valor);
+            feedback.textContent = acierto
+              ? '✅ Correcto. ¡Bien hecho!'
+              : `❌ Intenta de nuevo. ${leccion.ejercicio.ayuda || ''}`.trim();
+            feedback.className = 'feedback ' + (acierto ? 'exito' : 'error');
+          };
+
+          boton.addEventListener('click', verificar);
+          input.addEventListener('keydown', (e) => { if (e.key === 'Enter') verificar(); });
+          caja.append(titulo, input, boton, feedback);
+          lesDiv.appendChild(caja);
+        }
         modDiv.appendChild(lesDiv);
       });
       contenedor.appendChild(modDiv);
     });
   }
 
-  window.verificarEjercicio = function(modulo, leccion) {
-    const input = document.getElementById(`resp-${modulo}-${leccion}`);
-    const fb = document.getElementById(`fb-${modulo}-${leccion}`);
-    const valor = input.value.trim();
-    let correcto = '';
-    if (modulo === 'Módulo 1 — Las piezas y su movimiento' && leccion === 'El Rey (K / k)') correcto = '8';
-    if (valor === correcto) {
-      fb.textContent = '✅ Correcto. ¡Bien hecho!';
-      fb.style.color = '#22c55e';
-    } else if (valor !== '') {
-      fb.textContent = '❌ Intenta de nuevo.';
-      fb.style.color = '#f87171';
-    } else {
-      fb.textContent = '';
-    }
-  };
-
   /* ---------- Arranque ---------- */
   crearJuego();
+  marcarColor(NEGRO);
 </script>
 
 </body>

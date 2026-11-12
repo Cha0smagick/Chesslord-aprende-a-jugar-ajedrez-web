@@ -1,19 +1,19 @@
-// Motor de reglas de ajedrez — puerto de logic.py (Chesslord)
+// Motor de reglas de ajedrez (Chesslord)
+// Tablero: grid[fila][columna], fila 0 = rango 8, fila 7 = rango 1.
+// Mayúsculas = blancas, minúsculas = negras.
 // Autor: ALEJANDRO QUINTERO RUIZ
-import { BLANCO, NEGRO, VALOR_PIEZAS, PST } from './chessconstants.js';
+import { BLANCO, NEGRO } from './chessconstants.js';
+
+const COLS = 'abcdefgh';
+const CABALLO = [[1, 2], [2, 1], [2, -1], [1, -2], [-1, -2], [-2, -1], [-2, 1], [-1, 2]];
+const DIAGONAL = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
+const RECTA = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+const REY = [...DIAGONAL, ...RECTA];
+const DESLIZA = { b: DIAGONAL, r: RECTA, q: REY };
 
 export class Board {
   constructor() {
-    this.grid = this._crearTableroInicial();
-    this.castlingRights = {
-      k: false, r_a1: false, r_h1: false,
-      K: false, R_A8: false, R_H8: false
-    };
-    this.lastMove = null; // [[c, f], [c, d], epTarget]
-  }
-
-  _crearTableroInicial() {
-    return [
+    this.grid = [
       ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
       ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
       [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
@@ -23,6 +23,10 @@ export class Board {
       ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
       ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
     ];
+    // Derechos de enroque disponibles (true = todavía puede enrocar por ese lado).
+    this.castling = { K: true, Q: true, k: true, q: true };
+    // Última jugada: { from:[c,f], to:[c,f], ep:[c,f]|null }
+    this.lastMove = null;
   }
 
   getColor(ficha) {
@@ -30,64 +34,188 @@ export class Board {
     return ficha === ficha.toLowerCase() ? NEGRO : BLANCO;
   }
 
+  /* ---------------- generación de movimientos ---------------- */
+
+  _genPieza(c, f, out) {
+    const ficha = this.grid[f][c];
+    const color = this.getColor(ficha);
+    const tipo = ficha.toLowerCase();
+
+    if (tipo === 'p') {
+      const dir = color === BLANCO ? -1 : 1;
+      const filaInicial = color === BLANCO ? 6 : 1;
+      const ultima = color === BLANCO ? 0 : 7;
+      const f1 = f + dir;
+      if (f1 < 0 || f1 > 7) return;
+      // La promoción genera las cuatro piezas; move[2] indica la elegida.
+      const añadir = (cc) => {
+        if (f1 === ultima) for (const p of ['q', 'r', 'b', 'n']) out.push([[c, f], [cc, f1], p]);
+        else out.push([[c, f], [cc, f1]]);
+      };
+      if (this.grid[f1][c] === ' ') {
+        añadir(c);
+        const f2 = f + 2 * dir;
+        if (f === filaInicial && this.grid[f2][c] === ' ') out.push([[c, f], [c, f2]]);
+      }
+      for (const dc of [-1, 1]) {
+        const cc = c + dc;
+        if (cc < 0 || cc > 7) continue;
+        const objetivo = this.grid[f1][cc];
+        if (objetivo !== ' ' && this.getColor(objetivo) !== color) {
+          añadir(cc);
+        } else if (objetivo === ' ' && this.lastMove && this.lastMove.ep &&
+                   this.lastMove.ep[0] === cc && this.lastMove.ep[1] === f1) {
+          añadir(cc);
+        }
+      }
+      return;
+    }
+
+    if (tipo === 'n' || tipo === 'k') {
+      const dirs = tipo === 'n' ? CABALLO : REY;
+      for (const [dc, df] of dirs) {
+        const cc = c + dc, ff = f + df;
+        if (cc < 0 || cc > 7 || ff < 0 || ff > 7) continue;
+        const objetivo = this.grid[ff][cc];
+        if (objetivo === ' ' || this.getColor(objetivo) !== color) out.push([[c, f], [cc, ff]]);
+      }
+      if (tipo === 'k') this._genEnroques(c, f, color, out);
+      return;
+    }
+
+    for (const [dc, df] of DESLIZA[tipo]) {
+      let cc = c + dc, ff = f + df;
+      while (cc >= 0 && cc <= 7 && ff >= 0 && ff <= 7) {
+        const objetivo = this.grid[ff][cc];
+        if (objetivo === ' ') {
+          out.push([[c, f], [cc, ff]]);
+        } else {
+          if (this.getColor(objetivo) !== color) out.push([[c, f], [cc, ff]]);
+          break;
+        }
+        cc += dc;
+        ff += df;
+      }
+    }
+  }
+
+  _genEnroques(c, f, color, out) {
+    const fila = color === BLANCO ? 7 : 0;
+    if (f !== fila || c !== 4) return;
+    const torre = color === BLANCO ? 'R' : 'r';
+    const rival = color === BLANCO ? NEGRO : BLANCO;
+    const permiso = (k) => (color === BLANCO ? this.castling[k.toUpperCase()] : this.castling[k]);
+
+    // No se puede enrocar saliendo de jaque, ni atravesando o aterrizando en casilla atacada.
+    if (this.isInCheck(color)) return;
+
+    if (permiso('k') && this.grid[fila][7] === torre &&
+        this.grid[fila][5] === ' ' && this.grid[fila][6] === ' ' &&
+        !this._isSquareAttacked([5, fila], rival) && !this._isSquareAttacked([6, fila], rival)) {
+      out.push([[4, fila], [6, fila]]);
+    }
+    if (permiso('q') && this.grid[fila][0] === torre &&
+        this.grid[fila][1] === ' ' && this.grid[fila][2] === ' ' && this.grid[fila][3] === ' ' &&
+        !this._isSquareAttacked([3, fila], rival) && !this._isSquareAttacked([2, fila], rival)) {
+      out.push([[4, fila], [2, fila]]);
+    }
+  }
+
+  getLegalMoves(color) {
+    const pseudo = [];
+    for (let f = 0; f < 8; f++) {
+      for (let c = 0; c < 8; c++) {
+        const ficha = this.grid[f][c];
+        if (ficha !== ' ' && this.getColor(ficha) === color) this._genPieza(c, f, pseudo);
+      }
+    }
+    const legales = [];
+    for (const move of pseudo) {
+      const memo = this.makeMove(move);
+      if (!this.isInCheck(color)) legales.push(move);
+      this.undoMove(memo);
+    }
+    return legales;
+  }
+
+  isValidMove(move, color) {
+    if (!move || !move[0] || !move[1]) return false;
+    const [[cO, fO], [cD, fD]] = move;
+    if ([cO, fO, cD, fD].some(n => !Number.isInteger(n) || n < 0 || n > 7)) return false;
+    if (cO === cD && fO === fD) return false;
+    const ficha = this.grid[fO][cO];
+    if (ficha === ' ' || this.getColor(ficha) !== color) return false;
+    if (this.getColor(this.grid[fD][cD]) === color) return false;
+
+    const pseudo = [];
+    this._genPieza(cO, fO, pseudo);
+    const jugada = pseudo.find(m => m[1][0] === cD && m[1][1] === fD &&
+      (!move[2] || (m[2] || 'q') === move[2].toLowerCase()));
+    if (!jugada) return false;
+
+    const memo = this.makeMove(jugada);
+    const seguro = !this.isInCheck(color);
+    this.undoMove(memo);
+    return seguro;
+  }
+
+  /* ---------------- ejecución ---------------- */
+
   makeMove(move) {
     const [[cO, fO], [cD, fD]] = move;
     const ficha = this.grid[fO][cO];
-    const captura = this.grid[fD][cD];
-    const dx = Math.abs(cD - cO);
-    const dy = Math.abs(fD - fO);
-    const dirP = this.getColor(ficha) === NEGRO ? 1 : -1;
+    const capturada = this.grid[fD][cD];
+    const color = this.getColor(ficha);
+    const tipo = ficha.toLowerCase();
 
     const memo = {
-      move: move,
-      captured: captura,
+      move,
       piece: ficha,
-      oldCastling: { ...this.castlingRights },
-      oldLastMove: this.lastMove,
-      enPassantCaptured: null
+      captured: capturada,
+      castling: { ...this.castling },
+      lastMove: this.lastMove,
+      epCaptured: null
     };
 
-    // Enroque (rey se mueve 2 casillas)
-    if (ficha.toLowerCase() === 'k' && dx === 2) {
-      if (cD > cO) { // corto
-        this.grid[fO][5] = this.grid[fO][7];
-        this.grid[fO][7] = ' ';
-      } else { // largo
-        this.grid[fO][3] = this.grid[fO][0];
-        this.grid[fO][0] = ' ';
-      }
+    if (tipo === 'k' && Math.abs(cD - cO) === 2) {
+      if (cD > cO) { this.grid[fO][5] = this.grid[fO][7]; this.grid[fO][7] = ' '; }
+      else { this.grid[fO][3] = this.grid[fO][0]; this.grid[fO][0] = ' '; }
+    } else if (tipo === 'p' && cO !== cD && capturada === ' ') {
+      // captura al paso: el peón capturado está en la fila de origen
+      memo.epCaptured = [cD, fO];
+      this.grid[fO][cD] = ' ';
     }
 
-    // Mover pieza
     this.grid[fD][cD] = ficha;
     this.grid[fO][cO] = ' ';
 
-    // En passant: detectar captura al paso usando lastMove del turno anterior
-    let enPassantCaptured = null;
-    if (
-      ficha.toLowerCase() === 'p' && dx === 1 && captura === ' ' &&
-      this.lastMove !== null &&
-      this.lastMove[1] !== null &&
-      cD === this.lastMove[1][0] && fD === this.lastMove[1][1]
-    ) {
-      enPassantCaptured = [cD, fD - dirP];
-      this.grid[enPassantCaptured[1]][enPassantCaptured[0]] = ' ';
+    // Promoción (por defecto dama; move[2] permite subpromoción).
+    if (tipo === 'p' && (fD === 0 || fD === 7)) {
+      const eleccion = (move[2] || 'q').toLowerCase();
+      this.grid[fD][cD] = color === BLANCO ? eleccion.toUpperCase() : eleccion;
     }
 
-    // Grabar lastMove para en passant del próximo turno
-    let epTarget = null;
-    if (ficha.toLowerCase() === 'p' && dy === 2) {
-      epTarget = [cD, fO + dirP];
+    // Derechos de enroque: rey que se mueve, torre que se mueve o torre capturada.
+    if (tipo === 'k') {
+      if (color === BLANCO) { this.castling.K = this.castling.Q = false; }
+      else { this.castling.k = this.castling.q = false; }
+    } else if (tipo === 'r') {
+      if (fO === 7 && cO === 0) this.castling.Q = false;
+      else if (fO === 7 && cO === 7) this.castling.K = false;
+      else if (fO === 0 && cO === 0) this.castling.q = false;
+      else if (fO === 0 && cO === 7) this.castling.k = false;
     }
-    this.lastMove = [move, epTarget];
-
-    // Promoción automática a Reina
-    if (ficha.toLowerCase() === 'p' && (fD === 0 || fD === 7)) {
-      this.grid[fD][cD] = ficha.isLowerCase() ? 'q' : 'Q';
+    if (capturada !== ' ' && capturada.toLowerCase() === 'r') {
+      if (fD === 7 && cD === 0) this.castling.Q = false;
+      else if (fD === 7 && cD === 7) this.castling.K = false;
+      else if (fD === 0 && cD === 0) this.castling.q = false;
+      else if (fD === 0 && cD === 7) this.castling.k = false;
     }
 
-    this._updateCastlingRights(ficha, cO, fO);
-    memo.enPassantCaptured = enPassantCaptured;
+    let ep = null;
+    if (tipo === 'p' && Math.abs(fD - fO) === 2) ep = [cO, (fO + fD) / 2];
+    this.lastMove = { from: [cO, fO], to: [cD, fD], ep };
+
     return memo;
   }
 
@@ -95,179 +223,87 @@ export class Board {
     const [[cO, fO], [cD, fD]] = memo.move;
     this.grid[fO][cO] = memo.piece;
     this.grid[fD][cD] = memo.captured;
-    this.castlingRights = { ...memo.oldCastling };
-    this.lastMove = memo.oldLastMove;
+    this.castling = { ...memo.castling };
+    this.lastMove = memo.lastMove;
 
-    // Deshacer captura al paso: restaurar el peón capturado
-    if (memo.enPassantCaptured) {
-      const [epC, epF] = memo.enPassantCaptured;
-      this.grid[epF][epC] = memo.piece.toUpperCase() === memo.piece ? 'p' : 'P';
+    if (memo.epCaptured) {
+      const [epC, epF] = memo.epCaptured;
+      this.grid[epF][epC] = memo.piece === memo.piece.toUpperCase() ? 'p' : 'P';
     }
 
-    // Deshacer enroque de la torre
     if (memo.piece.toLowerCase() === 'k' && Math.abs(cD - cO) === 2) {
-      if (cD > cO) {
-        this.grid[fO][7] = this.grid[fO][5];
-        this.grid[fO][5] = ' ';
-      } else {
-        this.grid[fO][0] = this.grid[fO][3];
-        this.grid[fO][3] = ' ';
+      if (cD > cO) { this.grid[fO][7] = this.grid[fO][5]; this.grid[fO][5] = ' '; }
+      else { this.grid[fO][0] = this.grid[fO][3]; this.grid[fO][3] = ' '; }
+    }
+  }
+
+  /* ---------------- ataques y jaque ---------------- */
+
+  _isSquareAttacked(sq, porColor) {
+    const [c, f] = sq;
+
+    // Peones: el atacante está una fila por delante de su propia dirección.
+    const filaPeon = f + (porColor === BLANCO ? 1 : -1);
+    if (filaPeon >= 0 && filaPeon <= 7) {
+      for (const dc of [-1, 1]) {
+        const cc = c + dc;
+        if (cc < 0 || cc > 7) continue;
+        const p = this.grid[filaPeon][cc];
+        if (p !== ' ' && p.toLowerCase() === 'p' && this.getColor(p) === porColor) return true;
       }
     }
-  }
 
-  _updateCastlingRights(ficha, c, f) {
-    if (ficha === 'k') this.castlingRights.k = true;
-    else if (ficha === 'K') this.castlingRights.K = true;
-    else if (ficha === 'r') {
-      if (c === 0 && f === 0) this.castlingRights.r_a1 = true;
-      else if (c === 7 && f === 0) this.castlingRights.r_h1 = true;
-    } else if (ficha === 'R') {
-      if (c === 0 && f === 7) this.castlingRights.R_A8 = true;
-      else if (c === 7 && f === 7) this.castlingRights.R_H8 = true;
+    for (const [dc, df] of CABALLO) {
+      const cc = c + dc, ff = f + df;
+      if (cc < 0 || cc > 7 || ff < 0 || ff > 7) continue;
+      const p = this.grid[ff][cc];
+      if (p !== ' ' && p.toLowerCase() === 'n' && this.getColor(p) === porColor) return true;
     }
-  }
 
-  getLegalMoves(color) {
-    const moves = [];
-    for (let f = 0; f < 8; f++) {
-      for (let c = 0; c < 8; c++) {
-        const ficha = this.grid[f][c];
-        if (ficha !== ' ' && this.getColor(ficha) === color) {
-          for (let df = 0; df < 8; df++) {
-            for (let dc = 0; dc < 8; dc++) {
-              const move = [[c, f], [dc, df]];
-              if (this.isValidMove(move, color)) {
-                moves.push(move);
-              }
-            }
+    for (const [dc, df] of REY) {
+      const cc = c + dc, ff = f + df;
+      if (cc < 0 || cc > 7 || ff < 0 || ff > 7) continue;
+      const p = this.grid[ff][cc];
+      if (p !== ' ' && p.toLowerCase() === 'k' && this.getColor(p) === porColor) return true;
+    }
+
+    for (const [dc, df] of RECTA) {
+      let cc = c + dc, ff = f + df;
+      while (cc >= 0 && cc <= 7 && ff >= 0 && ff <= 7) {
+        const p = this.grid[ff][cc];
+        if (p !== ' ') {
+          if (this.getColor(p) === porColor) {
+            const t = p.toLowerCase();
+            if (t === 'r' || t === 'q') return true;
           }
+          break;
         }
-      }
-    }
-    return moves;
-  }
-
-  isValidMove(move, color) {
-    const [[cO, fO], [cD, fD]] = move;
-    const ficha = this.grid[fO][cO];
-    const objetivo = this.grid[fD][cD];
-    const colorPieza = this.getColor(ficha);
-
-    if (cO === cD && fO === fD) return false;
-    if (this.getColor(objetivo) === color) return false;
-    if (colorPieza !== color) return false;
-
-    if (!this._ruleCheck([cO, fO], [cD, fD], ficha, color)) return false;
-
-    // Verificar si el movimiento deja al rey en jaque
-    const memo = this.makeMove(move);
-    const enJaque = this.isInCheck(color);
-    this.undoMove(memo);
-    return !enJaque;
-  }
-
-  _ruleCheck(origen, destino, ficha, color) {
-    const [cO, fO] = origen;
-    const [cD, fD] = destino;
-    const objetivo = this.grid[fD][cD];
-    const dx = Math.abs(cD - cO);
-    const dy = Math.abs(fD - fO);
-    const tipo = ficha.toLowerCase();
-    let esValido = false;
-
-    if (tipo === 'p') {
-      const dir = color === NEGRO ? 1 : -1;
-      if (cO === cD) { // Avance
-        if (fD === fO + dir && objetivo === ' ') esValido = true;
-        else if (fO === (color === NEGRO ? 1 : 6) && fD === fO + 2 * dir &&
-                 objetivo === ' ' && this.grid[fO + dir][cO] === ' ') {
-          esValido = true;
-        }
-      } else if (dx === 1 && fD === fO + dir && objetivo !== ' ') { // Captura normal
-        esValido = true;
-      } else if (dx === 1 && fD === fO + dir && objetivo === ' ') { // Captura al paso
-        if (this.lastMove !== null &&
-            this.lastMove[1] !== null &&
-            cD === this.lastMove[1][0] && fD === this.lastMove[1][1]) {
-          esValido = true;
-        }
-      }
-    } else if (tipo === 'n') {
-      esValido = (dx === 2 && dy === 1) || (dx === 1 && dy === 2);
-    } else if (tipo === 'b') {
-      esValido = dx === dy && this._checkPath([cO, fO], [cD, fD], true, false);
-    } else if (tipo === 'r') {
-      esValido = (dx === 0 || dy === 0) && this._checkPath([cO, fO], [cD, fD], false, true);
-    } else if (tipo === 'q') {
-      esValido = this._checkPath([cO, fO], [cD, fD], true, true);
-    } else if (tipo === 'k') {
-      esValido = dx <= 1 && dy <= 1;
-      // Enroque: rey se mueve 2 casillas
-      if (dx === 2 && dy === 0 && !esValido) {
-        esValido = this._canCastle(color, cD > cO);
+        cc += dc;
+        ff += df;
       }
     }
 
-    return esValido;
-  }
-
-  _checkPath(origen, destino, diag, orthogonal) {
-    const [cO, fO] = origen;
-    const [cD, fD] = destino;
-    const dx = cD - cO;
-    const dy = fD - fO;
-
-    if (diag && Math.abs(dx) === Math.abs(dy)) {
-      const stepC = dx > 0 ? 1 : -1;
-      const stepF = dy > 0 ? 1 : -1;
-      let currC = cO + stepC;
-      let currF = fO + stepF;
-      while (currC !== cD) {
-        if (this.grid[currF][currC] !== ' ') return false;
-        currC += stepC;
-        currF += stepF;
-      }
-      return true;
-    }
-    if (orthogonal && (dx === 0 || dy === 0)) {
-      const stepC = dx === 0 ? 0 : (dx > 0 ? 1 : -1);
-      const stepF = dy === 0 ? 0 : (dy > 0 ? 1 : -1);
-      let currC = cO + stepC;
-      let currF = fO + stepF;
-      while (currC !== cD || currF !== fD) {
-        if (currC === cD && currF === fD) break;
-        if (this.grid[currF][currC] !== ' ') return false;
-        currC += stepC;
-        currF += stepF;
-      }
-      return true;
-    }
-    return false;
-  }
-
-  _isSquareAttacked(square, byColor) {
-    const [c, f] = square;
-    for (let ff = 0; ff < 8; ff++) {
-      for (let cc = 0; cc < 8; cc++) {
-        const piece = this.grid[ff][cc];
-        if (piece === ' ' || this.getColor(piece) !== byColor) continue;
-        // Peón: ataca las dos casillas diagonales al frente, ocupada o no
-        if (piece.toLowerCase() === 'p') {
-          const dirP = byColor === NEGRO ? 1 : -1;
-          if ((cc - 1 === c && ff + dirP === f) || (cc + 1 === c && ff + dirP === f)) {
-            return true;
+    for (const [dc, df] of DIAGONAL) {
+      let cc = c + dc, ff = f + df;
+      while (cc >= 0 && cc <= 7 && ff >= 0 && ff <= 7) {
+        const p = this.grid[ff][cc];
+        if (p !== ' ') {
+          if (this.getColor(p) === porColor) {
+            const t = p.toLowerCase();
+            if (t === 'b' || t === 'q') return true;
           }
-          continue;
+          break;
         }
-        if (this._pseudoValid([cc, ff], square)) return true;
+        cc += dc;
+        ff += df;
       }
     }
+
     return false;
   }
 
   _findKing(color) {
-    const rey = color === NEGRO ? 'k' : 'K';
+    const rey = color === BLANCO ? 'K' : 'k';
     for (let f = 0; f < 8; f++) {
       for (let c = 0; c < 8; c++) {
         if (this.grid[f][c] === rey) return [c, f];
@@ -276,70 +312,76 @@ export class Board {
     return null;
   }
 
-  _canCastle(color, kingside) {
+  isInCheck(color) {
     const pos = this._findKing(color);
-    if (!pos || this.isInCheck(color)) return false;
-    const [cR, fR] = pos;
-    const kingKey = color === BLANCO ? 'K' : 'k';
-
-    if (kingside) {
-      const rookKey = color === BLANCO ? 'R_H8' : 'r_h1';
-      if (this.castlingRights[kingKey] || this.castlingRights[rookKey]) return false;
-      const path = [[5, fR], [6, fR]];
-      const squares = [pos, [6, fR]];
-      for (const [cc, ff] of path) {
-        if (this.grid[ff][cc] !== ' ') return false;
-      }
-      const oponente = color === BLANCO ? NEGRO : BLANCO;
-      for (const sq of squares) {
-        if (this._isSquareAttacked(sq, oponente)) return false;
-      }
-      return true;
-    } else {
-      const rookKey = color === BLANCO ? 'R_A8' : 'r_a1';
-      if (this.castlingRights[kingKey] || this.castlingRights[rookKey]) return false;
-      const path = [[3, fR], [2, fR], [1, fR]];
-      const squares = [pos, [3, fR], [2, fR]];
-      for (const [cc, ff] of path) {
-        if (this.grid[ff][cc] !== ' ') return false;
-      }
-      const oponente = color === BLANCO ? NEGRO : BLANCO;
-      for (const sq of squares) {
-        if (this._isSquareAttacked(sq, oponente)) return false;
-      }
-      return true;
-    }
+    if (!pos) return false;
+    return this._isSquareAttacked(pos, color === BLANCO ? NEGRO : BLANCO);
   }
 
-  isInCheck(color) {
-    const reyChar = color === NEGRO ? 'k' : 'K';
-    let posRey = null;
-    for (let f = 0; f < 8; f++) {
-      for (let c = 0; c < 8; c++) {
-        if (this.grid[f][c] === reyChar) {
-          posRey = [c, f];
-          break;
-        }
-      }
-      if (posRey) break;
-    }
-    if (!posRey) return false;
+  /* ---------------- notación y repetición ---------------- */
 
-    const oponente = color === NEGRO ? BLANCO : NEGRO;
-    for (let f = 0; f < 8; f++) {
-      for (let c = 0; c < 8; c++) {
-        const ficha = this.grid[f][c];
-        if (ficha !== ' ' && this.getColor(ficha) === oponente) {
-          if (this._pseudoValid([c, f], posRey)) return true;
-        }
-      }
+  // Notación algebraica abreviada (SAN) del movimiento, calculada sobre la posición actual.
+  san(move) {
+    const [[cO, fO], [cD, fD]] = move;
+    const ficha = this.grid[fO][cO];
+    const tipo = ficha.toLowerCase();
+    const color = this.getColor(ficha);
+    const captura = this.grid[fD][cD] !== ' ' || (tipo === 'p' && cO !== cD);
+    let texto;
+
+    if (tipo === 'k' && Math.abs(cD - cO) === 2) {
+      texto = cD > cO ? 'O-O' : 'O-O-O';
+    } else if (tipo === 'p') {
+      texto = (captura ? COLS[cO] + 'x' : '') + COLS[cD] + (8 - fD);
+      if (fD === 0 || fD === 7) texto += '=' + (move[2] || 'q').toUpperCase();
+    } else {
+      texto = ficha.toUpperCase() + this._desambiguar(move, ficha) +
+              (captura ? 'x' : '') + COLS[cD] + (8 - fD);
+    }
+
+    const rival = color === BLANCO ? NEGRO : BLANCO;
+    const memo = this.makeMove(move);
+    if (this.isInCheck(rival)) texto += this.getLegalMoves(rival).length === 0 ? '#' : '+';
+    this.undoMove(memo);
+    return texto;
+  }
+
+  _desambiguar(move, ficha) {
+    const [cO, fO] = move[0];
+    const [cD, fD] = move[1];
+    const otros = this.getLegalMoves(this.getColor(ficha)).filter(m => {
+      if (m[0][0] === cO && m[0][1] === fO) return false;
+      return this.grid[m[0][1]][m[0][0]] === ficha && m[1][0] === cD && m[1][1] === fD;
+    });
+    if (otros.length === 0) return '';
+    const mismoArchivo = otros.some(m => m[0][0] === cO);
+    const mismaFila = otros.some(m => m[0][1] === fO);
+    if (!mismoArchivo) return COLS[cO];
+    if (!mismaFila) return String(8 - fO);
+    return COLS[cO] + (8 - fO);
+  }
+
+  _hayCapturaAlPaso(color) {
+    if (!this.lastMove || !this.lastMove.ep) return false;
+    const [ce, fe] = this.lastMove.ep;
+    const filaPeon = color === BLANCO ? fe + 1 : fe - 1;
+    if (filaPeon < 0 || filaPeon > 7) return false;
+    for (const dc of [-1, 1]) {
+      const cc = ce + dc;
+      if (cc < 0 || cc > 7) continue;
+      const p = this.grid[filaPeon][cc];
+      if (p !== ' ' && p.toLowerCase() === 'p' && this.getColor(p) === color) return true;
     }
     return false;
   }
 
-  _pseudoValid(origen, destino) {
-    const ficha = this.grid[origen[1]][origen[0]];
-    const color = this.getColor(ficha);
-    return this._ruleCheck(origen, destino, ficha, color);
+  // Clave de posición para repetición triple (FIDE: la casilla de al paso sólo cuenta si es capturable).
+  positionKey(turn) {
+    const piezas = this.grid.map(fila => fila.join('')).join('/');
+    const derechos = ['K', 'Q', 'k', 'q'].filter(k => this.castling[k]).join('') || '-';
+    const ep = this._hayCapturaAlPaso(turn)
+      ? COLS[this.lastMove.ep[0]] + (8 - this.lastMove.ep[1])
+      : '-';
+    return `${piezas} ${turn === BLANCO ? 'w' : 'b'} ${derechos} ${ep}`;
   }
 }

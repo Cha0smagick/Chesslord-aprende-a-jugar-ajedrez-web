@@ -12,13 +12,15 @@ Sitio web gratuito, profesional y abierto para aprender ajedrez desde cero, con 
 
 | Característica | Descripción |
 |----------------|-------------|
-| 🎯 **Motor de ajedrez completo** | Reglas oficiales: todas las piezas, enroque (corto y largo), captura al paso (en passant), promoción automática a dama, jaque, jaque mate y tablas por ahogado. |
-| 🤖 **IA con 3 niveles** | **Básico** (principiantes), **Medio** (intermedio) y **Maestro** (Minimax + alfa-beta, profundidad 6). |
-| 📚 **Curso completo** | 3 módulos con teoría y ejercicios interactivos con verificación automática. |
-| 🎨 **Diseño profesional** | Tablero CSS Grid, piezas Unicode, resaltado de casillas válidas, indicador de jaque, historial en notación algebraica, modo oscuro y responsivo. |
-| ♟️ **Elige tu color** | Juega con Blancas o Negras. La IA es tu contrincante. |
-| ↩️ **Control de partida** | Deshacer movimiento y nueva partida en cualquier momento. |
-| 📱 **Móvil y escritorio** | Diseño adaptable, sin instalación requerida. |
+| 🎯 **Motor de reglas completo** | Todas las piezas, enroque corto y largo (con todas sus restricciones), captura al paso, promoción con subpromoción, jaque, jaque mate y ahogado. Validado con *perft* contra posiciones de referencia. |
+| 🤝 **Tablas completas** | Ahogado, repetición triple, regla de 50 movimientos y material insuficiente. |
+| 🤖 **IA con 3 niveles** | **Básico** (mirada corta y fallos deliberados), **Medio** y **Maestro** (negamax con poda alfa-beta, ordenación de jugadas, búsqueda de capturas y profundización iterativa con límite de tiempo). |
+| ✍️ **Notación algebraica** | Historial en notación oficial (SAN), con desambiguación, capturas, enroques, coronaciones y signos de jaque/mate. |
+| 📚 **Curso completo** | 3 módulos con teoría y ejercicios interactivos con corrección automática. |
+| 🎨 **Diseño cuidado** | Tablero CSS Grid, piezas Unicode, resaltado de casillas válidas y de la última jugada, indicador de jaque, modo oscuro y diseño responsivo. |
+| ♟️ **Elige tu color** | Juega con Blancas o Negras; el tablero gira automáticamente a tu lado. |
+| ↩️ **Control de partida** | Deshacer (retira tu jugada y la respuesta de la IA) y nueva partida en cualquier momento. |
+| ⌨️ **Accesible** | Casillas con etiqueta ARIA y activación por teclado (Enter o Espacio). |
 | 🌍 **Código abierto** | Proyecto educativo para usar, modificar y compartir libremente. |
 
 ---
@@ -26,11 +28,11 @@ Sitio web gratuito, profesional y abierto para aprender ajedrez desde cero, con 
 ## 🎮 Cómo jugar
 
 1. Abre el sitio en cualquier navegador moderno.
-2. Elige tu color (Blancas o Negras) y el nivel de la IA.
-3. Haz clic en una de tus piezas para seleccionarla; las casillas válidas se resaltarán en azul.
+2. Elige tu color (Blancas o Negras) y el nivel de la IA. El nivel se cambia al instante, sin reiniciar.
+3. Haz clic en una de tus piezas para seleccionarla; las casillas válidas se marcan con un punto y las capturas con un anillo.
 4. Haz clic en la casilla destino para mover.
-5. Si el rey está en jaque, se indicará en rojo. Debes salir del jaque en tu movimiento.
-6. Usa **Deshacer** para retirar el último movimiento o **Nueva partida** para reiniciar.
+5. Si el rey está en jaque, se indica en rojo. Debes salir del jaque en tu movimiento.
+6. Usa **Deshacer** para retirar tu última jugada o **Nueva partida** para reiniciar.
 7. Ve a la pestaña **Curso** para estudiar teoría y practicar con ejercicios.
 
 ---
@@ -41,17 +43,17 @@ Sitio web gratuito, profesional y abierto para aprender ajedrez desde cero, con 
 |--------|-----------|
 | **Módulo 1** | Las piezas y su movimiento: Rey, Reina, Torre, Alfil, Caballo, Peón. |
 | **Módulo 2** | Reglas esenciales: Jaque, Jaque Mate, Enroque, Captura al paso, Tablas por ahogado. |
-| **Módulo 3** | Táctica básica: Doble ataque (fork), Absorción (pin), Clavada (skewer). |
+| **Módulo 3** | Táctica básica: Doble ataque (fork), Clavada (pin), Enfilada (skewer). |
 
-Cada lección incluye texto explicativo y ejercicios interactivos con retroalimentación inmediata.
+Cada lección incluye texto explicativo y ejercicios interactivos con corrección automática y tolerante a mayúsculas y tildes.
 
 ---
 
 ## 🛠️ Tecnología
 
-- **Motor de ajedrez:** Puerto a JavaScript estático del motor original de Chesslord (Python). Reglas completas sin dependencias externas.
-- **IA:** Minimax con poda alfa-beta y tablas de piezas-casilla (PST).
-- **Frontend:** HTML5 + CSS3 + JavaScript vanilla (módulos ES). Carga instantánea, sin frameworks pesados.
+- **Motor de reglas:** JavaScript puro, sin dependencias. Generación de movimientos por pieza y detección de ataques por barrido direccional.
+- **IA:** negamax con poda alfa-beta, ordenación MVV-LVA, *quiescence* de capturas, profundización iterativa con presupuesto de tiempo y tablas de piezas-casilla (PST).
+- **Frontend:** HTML5 + CSS3 + JavaScript vanilla (módulos ES). Carga instantánea, sin frameworks.
 - **Despliegue:** GitHub Actions → GitHub Pages.
 
 ---
@@ -65,28 +67,50 @@ Chesslord-aprende-a-jugar-ajedrez-web/
 │   └── style.css              # Estilos profesionales y responsivos
 ├── js/
 │   ├── chessconstants.js      # Constantes y tablas PST
-│   ├── chesslogic.js          # Motor de reglas (Board, movimientos legales)
-│   ├── chessai.js             # IA minimax alfa-beta con 3 niveles
-│   └── game.js                # Controlador de partida (humano vs IA)
+│   ├── chesslogic.js          # Motor de reglas (Board, movimientos legales, SAN)
+│   ├── chessai.js             # IA negamax alfa-beta con 3 niveles
+│   └── game.js                # Controlador de partida (humano vs IA, tablas, deshacer)
+├── tests/
+│   ├── engine.test.mjs        # Perft + reglas especiales + notación + IA
+│   ├── game.test.mjs          # Controlador: turnos, deshacer, resultados
+│   └── ui.e2e.mjs             # Prueba de interfaz en Chrome real (CDP)
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml         # CI/CD a GitHub Pages
 ├── .nojekyll                  # Desactiva Jekyll en GitHub Pages
-├── .gitignore
-├── PLAN_TRABAJO.md            # Plan de desarrollo (technostrata)
 └── README.md
+```
+
+Los ficheros `*.py` de la raíz son el **prototipo original de consola** con el que nació el proyecto. El motor de referencia y el que se publica es el de `js/`; el prototipo Python se conserva como documentación histórica y no recibe las correcciones del motor web.
+
+---
+
+## ✅ Pruebas
+
+El motor se valida con *perft* contra seis posiciones de referencia publicadas (inicial, Kiwipete, finales, coronaciones y dos posiciones de prueba), además de reglas especiales, notación y comportamiento de la IA.
+
+```bash
+# Motor de reglas + IA
+node tests/engine.test.mjs
+
+# Controlador de partida (sin navegador)
+node tests/game.test.mjs
+
+# Interfaz real en Chrome (requiere servir el sitio y abrir Chrome con depuración)
+python -m http.server 8765
+chrome --headless=new --remote-debugging-port=9333 --user-data-dir=%TEMP%/chessprof about:blank
+node tests/ui.e2e.mjs
 ```
 
 ---
 
 ## 🚀 Uso local
 
-No necesitas instalar nada. Clona o descarga el repositorio y abre `index.html` en tu navegador:
+No necesitas instalar nada. Clona o descarga el repositorio y abre `index.html` en tu navegador. Para que los módulos ES carguen sin restricciones del navegador, sirve la carpeta por HTTP:
 
 ```bash
-git clone https://github.com/Cha0smagick/Chesslord-aprende-a-jugar-ajedrez-web.git
-cd Chesslord-aprende-a-jugar-ajedrez-web
-# Abre index.html en tu navegador
+python -m http.server 8000
+# Abre http://localhost:8000
 ```
 
 ---
