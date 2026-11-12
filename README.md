@@ -16,8 +16,10 @@ Sitio web gratuito, profesional y abierto para aprender ajedrez desde cero, con 
 | 🤝 **Tablas completas** | Ahogado, repetición triple, regla de 50 movimientos y material insuficiente. |
 | 🤖 **IA con 3 niveles** | **Básico** (mirada corta y fallos deliberados), **Medio** y **Maestro** (negamax con poda alfa-beta, ordenación de jugadas, búsqueda de capturas y profundización iterativa con límite de tiempo). |
 | ✍️ **Notación algebraica** | Historial en notación oficial (SAN), con desambiguación, capturas, enroques, coronaciones y signos de jaque/mate. |
-| 📚 **Curso completo** | 3 módulos con teoría y ejercicios interactivos con corrección automática. |
-| 🎯 **Entrenamiento** | Posiciones didácticas basadas en libros clásicos (Morphy, Capablanca, Lasker, Silman, Polugayevsky). Encuentra la jugada clave con pista, verificación inmediata y explicación teórica. |
+| 📚 **Curso interactivo** | 11 lecciones basadas en Capablanca, Morphy, Nimzowitsch, Silman y Lasker. Teoría breve y la jugada clave sobre el tablero. |
+| 🎯 **Entrenamiento** | Ejercicios de táctica y de apertura con pista, verificación inmediata y explicación: mate de la última fila, horquilla, clavada, sacrificio en f7, siciliana, francesa… |
+| ♟️ **Aperturas guiadas** | Seis líneas clásicas comentadas jugada a jugada. Juegas las blancas; las negras responden solas. |
+| 💾 **Progreso guardado** | Las lecciones y ejercicios resueltos se marcan y persisten en el navegador. |
 | 🎨 **Diseño cuidado** | Tablero CSS Grid, piezas Unicode, resaltado de casillas válidas y de la última jugada, indicador de jaque, modo oscuro y diseño responsivo. |
 | ♟️ **Elige tu color** | Juega con Blancas o Negras; el tablero gira automáticamente a tu lado. |
 | ↩️ **Control de partida** | Deshacer (retira tu jugada y la respuesta de la IA) y nueva partida en cualquier momento. |
@@ -34,40 +36,52 @@ Sitio web gratuito, profesional y abierto para aprender ajedrez desde cero, con 
 4. Haz clic en la casilla destino para mover.
 5. Si el rey está en jaque, se indica en rojo. Debes salir del jaque en tu movimiento.
 6. Usa **Deshacer** para retirar tu última jugada o **Nueva partida** para reiniciar.
-7. Ve a la pestaña **Curso** para estudiar teoría y practicar con ejercicios.
+7. Ve a **Curso** para aprender la jugada clave de cada lección, a **Entrenamiento** para resolver ejercicios y a **Aperturas** para jugar líneas completas con explicación en cada movimiento.
 
 ---
 
 ## 📚 Curso incluido
 
-| Módulo | Contenido |
-|--------|-----------|
-| **Módulo 1** | Las piezas y su movimiento: Rey, Reina, Torre, Alfil, Caballo, Peón. |
-| **Módulo 2** | Reglas esenciales: Jaque, Jaque Mate, Enroque, Captura al paso, Tablas por ahogado. |
-| **Módulo 3** | Táctica básica: Doble ataque (fork), Clavada (pin), Enfilada (skewer). |
+| Libro | Lecciones |
+|-------|-----------|
+| **Fundamentos del Ajedrez** — Capablanca | Ocupa el centro · Desarrolla antes de atacar · Cambia hacia el centro · Pon el rey a salvo |
+| **Las lecciones de ajedrez** — Morphy | Apunta al punto débil f7 · Sacrifica un peón por tiempo |
+| **Mi Sistema** — Nimzowitsch | Bloquea el peón pasado · Ocupa el agujero |
+| **Reasumir el desequilibrio** — Silman | Toma la única columna abierta |
+| **Manual de Ajedrez** — Lasker | Corona el peón pasado · Activa el rey en el final |
 
-Cada lección incluye texto explicativo y ejercicios interactivos con corrección automática y tolerante a mayúsculas y tildes.
+Cada lección declara la posición como una **secuencia de jugadas SAN desde el inicio** (o un FEN) y la jugada clave en SAN. El motor resuelve las coordenadas, así que una lección mal escrita no puede llegar a publicarse: `tests/content.test.mjs` la rechaza.
 
 ---
 
-## 🎯 Entrenamiento de jugadas específicas
+## 🎯 Entrenamiento
 
-La sección **Entrenamiento** te permite practicar posiciones clave aisladas, inspiradas en la teoría de libros clásicos de ajedrez (Morphy, Capablanca, Lasker, Silman, Polugayevsky, entre otros). Cada ejercicio presenta:
+Dos categorías, cuatro ejercicios cada una:
 
-- Una posición reducida con las piezas relevantes.
-- La jugada clave que debes encontrar.
-- Una explicación teórica del porqué es la mejor jugada.
-- Una pista si te atascas.
-- Verificación inmediata: acierto, movimiento legal pero no clave, o ilegal.
+- **Táctica:** mate de la última fila, horquilla de caballo, clavada sobre el caballo, sacrificio en f7 (Fried Liver).
+- **Apertura:** 1.e4 · 1.d4 · Siciliana · Francesa · Gambito de dama.
 
-Temas incluidos:
-- **Control del centro** (Morphy)
-- **Desarrollo de piezas** (Capablanca)
-- **Doble ataque / Fork** (Polugayevsky)
-- **Peón aislado** (Silman)
-- **Enfilada / Skewer** (Lasker)
+Cada ejercicio te da la posición, una pista, verificación inmediata (acierto / legal pero no es la jugada / ilegal) y la explicación al resolverlo.
 
-El objetivo no es solo mover piezas, sino entender *por qué* cada jugada es fuerte, para que puedas aplicar esos patrones en tus propias partidas.
+---
+
+## ♟️ Aperturas
+
+Seis líneas completas con comentario en cada jugada:
+
+**Italiana · Española · Gambito de Dama · Siciliana · Francesa · India de Rey**
+
+Juegas las blancas; las negras responden solas. Puedes pedir una pista o dejar que el sitio muestre la jugada.
+
+### Añadir contenido
+
+Todo el contenido es datos; no hace falta tocar el código:
+
+- **Lección:** un objeto en `js/course-data.js` con `id`, `tema`, `nivel`, `libro`, `teoria`, `previas` (o `fen`), `jugada`, `pista`, `explicacion`.
+- **Ejercicio:** lo mismo en `js/training-data.js`, más `categoria` y `descripcion`.
+- **Apertura:** un objeto en `js/openings-data.js` con `jugadas: [{ san, comentario }]`.
+
+Después, `node tests/content.test.mjs` verifica que cada posición es legal y que cada jugada existe.
 
 ---
 
@@ -84,17 +98,24 @@ El objetivo no es solo mover piezas, sino entender *por qué* cada jugada es fue
 
 ```
 Chesslord-aprende-a-jugar-ajedrez-web/
-├── index.html                 # Aplicación principal (juego + curso)
+├── index.html                 # Aplicación: juego, curso, entrenamiento y aperturas
 ├── css/
 │   └── style.css              # Estilos profesionales y responsivos
 ├── js/
 │   ├── chessconstants.js      # Constantes y tablas PST
 │   ├── chesslogic.js          # Motor de reglas (Board, movimientos legales, SAN)
 │   ├── chessai.js             # IA negamax alfa-beta con 3 niveles
-│   └── game.js                # Controlador de partida (humano vs IA, tablas, deshacer)
+│   ├── game.js                # Controlador de partida (humano vs IA, tablas, deshacer)
+│   ├── posicion.js            # FEN → tablero, SAN → movimiento legal
+│   ├── puzzle.js              # Motor de ejercicios (curso y entrenamiento)
+│   ├── linea.js               # Aperturas: blancas humanas, negras automáticas
+│   ├── course-data.js         # Lecciones del curso
+│   ├── training-data.js       # Ejercicios de táctica y apertura
+│   └── openings-data.js       # Líneas de apertura comentadas
 ├── tests/
 │   ├── engine.test.mjs        # Perft + reglas especiales + notación + IA
 │   ├── game.test.mjs          # Controlador: turnos, deshacer, resultados
+│   ├── content.test.mjs       # Valida cada lección y apertura con el motor
 │   └── ui.e2e.mjs             # Prueba de interfaz en Chrome real (CDP)
 ├── .github/
 │   └── workflows/
@@ -118,9 +139,12 @@ node tests/engine.test.mjs
 # Controlador de partida (sin navegador)
 node tests/game.test.mjs
 
+# Contenido: cada posición y cada jugada contra el motor
+node tests/content.test.mjs
+
 # Interfaz real en Chrome (requiere servir el sitio y abrir Chrome con depuración)
 python -m http.server 8765
-chrome --headless=new --remote-debugging-port=9333 --user-data-dir=%TEMP%/chessprof about:blank
+chrome --headless=new --remote-debugging-port=9333 --user-data-dir=%TEMP%/chesslord-e2e about:blank
 node tests/ui.e2e.mjs
 ```
 

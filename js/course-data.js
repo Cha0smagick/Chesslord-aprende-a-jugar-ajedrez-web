@@ -1,325 +1,173 @@
-// Datos del curso interactivo — Chesslord
-// Contenido basado en libros clásicos de ajedrez.
+// Curso — Chesslord
+// Cada lección declara una posición (`previas` en SAN desde el inicio, o `fen`)
+// y la jugada clave (`jugada` en SAN). Las coordenadas las resuelve el motor.
 // Autor: ALEJANDRO QUINTERO RUIZ
-import { BLANCO, NEGRO } from './chessconstants.js';
+
+export const CURSO_MODULOS = [
   {
-    id: 'mod1',
+    id: 'capablanca',
     libro: 'Fundamentos del Ajedrez',
     autor: 'José Raúl Capablanca',
     nivel: 'Básico',
-    descripcion: 'Los fundamentos: valor de las piezas, movimiento y control de casillas clave.',
+    descripcion: 'Los cuatro principios que Capablanca repetía a todo principiante: centro, desarrollo, cambios y seguridad del rey.',
     lecciones: [
       {
-        id: 'capablanca-valor-piezas',
-        libro: 'Fundamentos del Ajedrez — Capablanca',
-        tema: 'Valor relativo de las piezas',
+        id: 'capablanca-centro',
+        tema: 'Ocupa el centro con un peón',
         nivel: 'Básico',
-        teoria: 'Cada pieza tiene un valor aproximado: Peón=1, Caballo=3, Alfil=3, Torre=5, Dama=9. Pero el valor real depende de la posición. Una pieza activa vale más que una pieza grande pasiva.',
-        grid: [
-          ['r','n','b','q','k','b','n','r'],
-          ['p','p','p','p','p','p','p','p'],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          ['P','P','P','P','P','P','P','P'],
-          ['R','N','B','Q','K','B','N','R']
-        ],
-        turno: BLANCO,
-        jugadaEsperada: [[4,6],[4,4]], // e2-e4
-        pista: 'Avanza el peón de e dos casillas para ocupar el centro y liberar piezas.',
-        explicacion: '1.e4 es la jugada más fundamental: ocupa el centro, libera al alfil de c1 y a la dama, y controla casillas clave (d5, f5).',
-        completada: false
+        libro: 'Fundamentos del Ajedrez — Capablanca',
+        teoria: 'El centro son las casillas d4, d5, e4 y e5. Un peón en el centro controla dos casillas de la mitad rival, abre la diagonal del alfil y la columna de la dama. Capablanca abría casi siempre con el peón de rey: es la jugada que más piezas pone a trabajar de golpe.',
+        previas: [],
+        jugada: 'e4',
+        pista: 'Adelanta dos casillas el peón que está delante del rey.',
+        explicacion: '1.e4 ocupa e4, controla d5 y f5, y deja libres el alfil de f1 y la dama de d1. Compare con mover el peón de torre: el mismo tiempo, ninguna pieza activada.'
       },
       {
         id: 'capablanca-desarrollo',
-        libro: 'Fundamentos del Ajedrez — Capablanca',
-        tema: 'Desarrollo antes del ataque',
+        tema: 'Desarrolla antes de atacar',
         nivel: 'Básico',
-        teoria: 'No lances el ataque antes de haber desarrollado tus piezas. Un caballo en el centro controla más casillas que uno en el borde.',
-        grid: [
-          ['r','n','b','q','k','b','n','r'],
-          ['p','p','p','p','p','p','p','p'],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ','P',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          ['P','P','P',' ','P','P','P','P'],
-          ['R','N','B','Q','K','B','N','R']
-        ],
-        turno: BLANCO,
-        jugadaEsperada: [[6,7],[5,5]], // Ng1-f3
-        pista: 'Desarrolla el caballo de g1 hacia f3, controlando el centro y preparando el enroque.',
-        explicacion: '1.Cf3 desarrolla el caballo hacia el centro, ataca e5 (si hubiera peón negro) y prepara el enroque corto. Capablanca insistía en desarrollar antes de atacar.',
-        completada: false
+        libro: 'Fundamentos del Ajedrez — Capablanca',
+        teoria: 'Desarrollar es sacar las piezas de la primera fila a casillas donde miren al centro. El caballo vale más en f3 que en g1 porque desde f3 controla e5, d4, h4 y g5, y prepara el enroque.',
+        previas: ['e4', 'e5'],
+        jugada: 'Nf3',
+        pista: 'Saca el caballo de g1 hacia f3.',
+        explicacion: '1.Cf3 desarrolla con tempo: el caballo ataca e5 y ayuda a controlar d4. Además despeja el camino del enroque corto.'
       },
       {
-        id: 'capablanca-centro',
+        id: 'capablanca-cambio-centro',
+        tema: 'Cambia hacia el centro',
+        nivel: 'Medio',
         libro: 'Fundamentos del Ajedrez — Capablanca',
-        tema: 'Ocupar el centro con peones',
+        teoria: 'Cuando cambias piezas, hazlo hacia el centro. Capturar con un peón lateral deja peones doblados y casillas débiles; capturar con el peón central mantiene la estructura sana.',
+        previas: ['e4', 'e5', 'Nf3', 'Nc6', 'Bb5', 'a6'],
+        jugada: 'Bxc6',
+        pista: 'El alfil de b5 puede tomar el caballo de c6.',
+        explicacion: '4.Axc6 dxc6 deja a las negras con peones doblados en c6 y c7 y sin el caballo que defendía e5. Es el cambio clásico de la Española: se entrega un alfil bueno para dañar la estructura rival.'
+      },
+      {
+        id: 'capablanca-enroque',
+        tema: 'Pon el rey a salvo',
         nivel: 'Básico',
-        teoria: 'El centro (d4, d5, e4, e5) es el corazón del tablero. Quien lo controla tiene más espacio para maniobrar.',
-        grid: [
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ','p',' ',' ',' ',' ',' '], // peón negro en d5
-          [' ',' ',' ','P',' ',' ',' ',' '], // peón blanco en d4
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' ']
-        ],
-        turno: BLANCO,
-        jugadaEsperada: [[3,6],[4,5]], // e2-e4 (desde la posición simplificada)
-        pista: 'Avanza el peón de e a e4 para desafiar el control negro del centro.',
-        explicacion: 'Con peones en d4 y e4, Blancas controlan el centro y tienen más espacio para sus piezas. Las piezas negras tienen menos casillas útiles.',
-        completada: false
+        libro: 'Fundamentos del Ajedrez — Capablanca',
+        teoria: 'El rey en el centro estorba a sus propias piezas y es el blanco de todos los ataques. El enroque corto lo esconde detrás de tres peones y conecta las torres en una sola jugada.',
+        previas: ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Nf6'],
+        jugada: 'O-O',
+        pista: 'Enroca corto: el rey va a g1 y la torre a f1.',
+        explicacion: '4.O-O cumple dos objetivos en un tiempo: el rey queda protegido y la torre de h1 entra en el juego. Las piezas ya estaban desarrolladas; el rey era la última pieza sin hacer nada.'
       }
     ]
   },
   {
-    id: 'mod2',
+    id: 'morphy',
     libro: 'Las lecciones de ajedrez',
     autor: 'Paul Morphy',
     nivel: 'Básico-Medio',
-    descripcion: 'Ataque rápido, desarrollo y aperturas abiertas al estilo Morphy.',
+    descripcion: 'Morphy ganaba desarrollando más rápido que nadie y golpeando el punto f7 antes de que el rival terminara de salir.',
     lecciones: [
       {
-        id: 'morphy-desarrollo-rapido',
-        libro: 'Las lecciones de ajedrez — Morphy',
-        tema: 'Desarrollo rápido y ataque al centro',
+        id: 'morphy-italiana',
+        tema: 'Apunta al punto débil f7',
         nivel: 'Básico',
-        teoria: 'Morphy ganaba partidos desarrollando todas sus piezas rápidamente y atacando antes de que el oponente estuviera listo.',
-        grid: [
-          ['r','n','b','q','k','b','n','r'],
-          ['p','p','p','p','p','p','p','p'],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ','P',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          ['P','P','P',' ','P','P','P','P'],
-          ['R','N','B','Q','K','B',' ','R']
-        ],
-        turno: BLANCO,
-        jugadaEsperada: [[6,7],[5,5]], // Ng1-f3
-        pista: 'Mueve el caballo de g1 a f3 para atacar e5 y desarrollar.',
-        explicacion: '1.Cf3 sigue los principios de Morphy: desarrollo rápido, control del centro y preparación del enroque. El caballo en f3 presiona e5 y apoya d4.',
-        completada: false
+        libro: 'Las lecciones de ajedrez — Morphy',
+        teoria: 'f7 es la casilla más débil del inicio: solo la defiende el rey. El alfil de f1 apunta directamente a ella si se coloca en c4. La apertura italiana es el ejemplo más limpio de esta idea.',
+        previas: ['e4', 'e5', 'Nf3', 'Nc6'],
+        jugada: 'Bc4',
+        pista: 'Saca el alfil de f1 por la diagonal que termina en f7.',
+        explicacion: '3.Ac4 desarrolla el alfil a la diagonal a2-g8, la que apunta a f7. Con el caballo en f3 ya hay dos piezas mirando ese punto: la base del ataque italiano.'
       },
       {
-        id: 'morphy-ataque-abierto',
-        libro: 'Las lecciones de ajedrez — Morphy',
-        tema: 'Ataque en posición abierta',
+        id: 'morphy-evans',
+        tema: 'Sacrifica un peón por tiempo',
         nivel: 'Medio',
-        teoria: 'En posiciones abiertas, el ataque al rey es más efectivo. Abre líneas para tus torres y dama.',
-        grid: [
-          ['r',' ','b','q','k','b','n','r'],
-          ['p','p','p','p','p','p','p','p'],
-          [' ',' ','n',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ','P',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          ['P','P',' ','P','P','P','P','P'],
-          ['R','N','B','Q','K','B','N','R']
-        ],
-        turno: BLANCO,
-        jugadaEsperada: [[4,6],[5,4]], // e2-e4 (ajustado a la grilla simplificada)
-        pista: 'Abre la línea central avanzando el peón e.',
-        explicacion: '1.e4 abre la diagonal del alfil de c1 y la línea de la dama, creando amenazas directas contra el rey negro en el centro abierto.',
-        completada: false
+        libro: 'Las lecciones de ajedrez — Morphy',
+        teoria: 'El gambito Evans entrega el peón b para ganar dos tiempos: abrir la columna b y obligar al alfil negro a moverse otra vez. Morphy demostró que el tiempo, en la apertura, vale más que un peón.',
+        previas: ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Bc5'],
+        jugada: 'b4',
+        pista: 'Ofrece el peón de b para apartar al alfil de c5.',
+        explicacion: '4.b4 ataca el alfil de c5. Si las negras aceptan con 4...Axb4, llega 5.c3 y el alfil debe volver a moverse: blancas han cambiado un peón por dos tiempos y el centro. Morphy jugaba esto constantemente.'
       }
     ]
   },
   {
-    id: 'mod3',
+    id: 'nimzowitsch',
     libro: 'Mi Sistema',
     autor: 'Aron Nimzowitsch',
-    nivel: 'Medio-Avanzado',
-    descripcion: 'Conceptos posicionales: bloqueo, protetorado, pieza sobrepasada y expansione.',
+    nivel: 'Medio',
+    descripcion: 'Nimzowitsch enseñó a pensar en casillas, no en piezas: bloqueo, piezas en agujeros y control del centro a distancia.',
     lecciones: [
       {
         id: 'nimzo-bloqueo',
-        libro: 'Mi Sistema — Nimzowitsch',
-        tema: 'El bloqueo',
+        tema: 'Bloquea el peón pasado',
         nivel: 'Medio',
-        teoria: 'Un peón pasado se detiene mejor con una pieza (caballo o alfil) colocada directamente delante de él. Esa pieza bloquea el avance y controla la casilla clave.',
-        grid: [
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ','p',' ',' ',' ',' '], // peón negro pasado en d5
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ','N',' ',' ',' ',' ',' '], // caballo blanco en c3 puede ir a d5
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' ']
-        ],
-        turno: BLANCO,
-        jugadaEsperada: [[2,5],[3,4]], // Cc3-d5 bloqueando el peón pasado
-        pista: 'Coloca el caballo directamente delante del peón pasado negro en d5.',
-        explicacion: '1.Cd5 bloquea el peón pasado. Un caballo delante de un peón pasado es el bloqueador ideal porque controla las casillas de escape y no puede ser expulsado fácilmente por otro peón.',
-        completada: false
+        libro: 'Mi Sistema — Nimzowitsch',
+        teoria: 'A un peón pasado no se le para con peones: se le para con una pieza colocada justo delante. El caballo es el bloqueador ideal porque controla las casillas de avance y las de rodeo, y ningún peón puede expulsarlo de frente.',
+        fen: '8/8/8/3p4/8/8/2N5/4K2k w - - 0 1',
+        jugada: 'Nd4',
+        pista: 'El peón negro de d5 quiere avanzar a d4. Llega antes con el caballo.',
+        explicacion: '1.Cd4 clava el peón: no puede avanzar porque la casilla de delante está ocupada y sus capturas son por los lados, no de frente. El caballo además mira c6, e6, f5 y b5, el resto de la carrera del peón.'
       },
       {
-        id: 'nimzo-protetorado',
+        id: 'nimzo-agujero',
+        tema: 'Ocupa el agujero',
+        nivel: 'Medio-Avanzado',
         libro: 'Mi Sistema — Nimzowitsch',
-        tema: 'Protetorado',
-        nivel: 'Medio',
-        teoria: 'El protetorado consiste en colocar una pieza detrás de un peón pasado amigo para apoyarlo en su avance hacia coronación.',
-        grid: [
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ','P',' ',' ',' ',' '], // peón pasado blanco en d5
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ','R',' ',' ',' ',' '], // torre blanca apoyando desde d2
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' ']
-        ],
-        turno: BLANCO,
-        jugadaEsperada: [[3,5],[3,4]], // Td2-d5 (protetorado simplificado)
-        pista: 'Mueve la torre detrás del peón pasado para apoyarlo.',
-        explicacion: '1.Td5 coloca la torre detrás del peón pasado en d5, protegiéndolo y controlando la columna d. Nimzowitsch llamaba a esto "protetorado": la pieza protege al peón desde atrás.',
-        completada: false
+        teoria: 'Un agujero es una casilla que ningún peón enemigo puede volver a controlar. Una pieza propia instalada ahí no puede ser expulsada por peones y domina medio tablero. Para que sea segura, la pieza debe estar protegida por un peón propio.',
+        fen: 'r1bqkb1r/pp3ppp/2np1n2/8/2P1P3/2N2N2/PP3PPP/R1BQKB1R w - - 0 1',
+        jugada: 'Nd5',
+        pista: 'Hay una casilla central que ningún peón negro puede atacar y que el peón de e4 defiende.',
+        explicacion: '1.Cd5 ocupa d5. Ningún peón negro puede atacarla: los de c6 y e6 ya no existen como amenaza, y el peón de e4 la defiende. Si las negras cambian 1...Cxd5, 2.exd5 les deja un peón central pasado.'
       }
     ]
   },
   {
-    id: 'mod4',
+    id: 'silman',
+    libro: 'Reasumir el desequilibrio',
+    autor: 'Jeremy Silman',
+    nivel: 'Medio',
+    descripcion: 'Silman enseña a buscar el desequilibrio concreto de la posición y a construir el plan a partir de él.',
+    lecciones: [
+      {
+        id: 'silman-columna-abierta',
+        tema: 'Toma la única columna abierta',
+        nivel: 'Medio',
+        libro: 'Reasumir el desequilibrio — Silman',
+        teoria: 'Una columna sin peones es una autopista: la torre la recorre entera y entra en la séptima fila. Antes de maniobrar con peones, pregúntate quién controla las columnas abiertas.',
+        fen: '6k1/pp3ppp/8/8/8/8/PP3PPP/R5K1 w - - 0 1',
+        jugada: 'Rd1',
+        pista: 'Hay una columna sin un solo peón. Lleva la torre allí.',
+        explicacion: '1.Td1 ocupa la columna d, que está limpia de peones de a a h. Desde d1 la torre puede entrar en d7 o d8, y ninguna pieza negra puede disputarle la columna sin cambiar.'
+      }
+    ]
+  },
+  {
+    id: 'lasker',
     libro: 'Manual de Ajedrez',
     autor: 'Emanuel Lasker',
-    nivel: 'Medio-Avanzado',
-    descripcion: 'Desequilibrios, ataque y defensa, principios de finales.',
+    nivel: 'Medio',
+    descripcion: 'Lasker insistía en que el final se gana con el rey y los peones, no con las piezas.',
     lecciones: [
       {
-        id: 'lasker-desequilibrio',
+        id: 'lasker-coronacion',
+        tema: 'Corona el peón pasado',
+        nivel: 'Básico',
         libro: 'Manual de Ajedrez — Lasker',
-        tema: 'Identificar el desequilibrio',
-        nivel: 'Medio',
-        teoria: 'Lasker enseñaba que cada posición tiene desequilibrios (pieza vs peones, espacio, seguridad del rey, estructura). El plan se basa en explotar tu ventaja.',
-        grid: [
-          [' ',' ',' ',' ','k',' ',' ',' '], // rey negro en e8
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ','p',' ',' ',' ',' '], // peón negro en d5
-          [' ',' ','P',' ',' ',' ',' ',' '], // peón blanco en c4
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ','K',' ',' ',' ']  // rey blanco en e1
-        ],
-        turno: BLANCO,
-        jugadaEsperada: [[2,6],[3,5]], // c4-c5 avanzando peón
-        pista: 'Avanza el peón de c para crear un peón pasado y desafiar el centro negro.',
-        explicacion: '1.c5 desafía el centro y crea un peón pasado en la columna c. El desequilibrio es: Blancas tiene peón avanzado en el flanco de dama, mientras que el rey negro está expuesto en el centro.',
-        completada: false
+        teoria: 'En el final, un peón a una casilla de la coronación vale más que cualquier pieza. La dama nueva decide la partida, así que hay que empujar antes de que el rival reaccione.',
+        fen: '6k1/P5p1/8/8/8/8/8/6K1 w - - 0 1',
+        jugada: 'a8=Q',
+        pista: 'El peón de a7 puede avanzar a la última fila.',
+        explicacion: '1.a8=D corona y además da jaque al rey de g8. La dama nueva entra en el tablero con tempo: el rey negro debe responder antes de poder ocuparse del peón de g7.'
       },
       {
-        id: 'lasker-ataque-rey',
+        id: 'lasker-rey-activo',
+        tema: 'Activa el rey en el final',
+        nivel: 'Medio',
         libro: 'Manual de Ajedrez — Lasker',
-        tema: 'Ataque al rey enroqueado',
-        nivel: 'Medio',
-        teoria: 'Cuando el rey está enroqueado, ataca con peones para debilitar su casilla y abre líneas para tus piezas mayores.',
-        grid: [
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ','k',' ',' ',' '],
-          [' ',' ','p',' ',' ',' ',' ',' '], // peón negro en c6
-          [' ','P',' ',' ',' ',' ',' ',' '], // peón blanco en b2 puede ir a b4
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ','K',' ',' ',' ']
-        ],
-        turno: BLANCO,
-        jugadaEsperada: [[1,4],[1,3]], // b2-b4 para atacar en el flanco
-        pista: 'Avanza el peón de b para crear presión en el flanco de dama.',
-        explicacion: '1.b4 expande en el flanco de dama, creando debilidades en la estructura negra y preparando un ataque lateral contra el rey enroqueado.',
-        completada: false
-      }
-    ]
-  },
-  {
-    id: 'mod5',
-    libro: 'Reasumir el Desequilibrio',
-    autor: 'Jeremy Silman',
-    nivel: 'Medio-Avanzado',
-    descripcion: 'Pensamiento posicional: desequilibrios, planes, peones y piezas.',
-    lecciones: [
-      {
-        id: 'silman-desequilibrios',
-        libro: 'Reasumir el Desequilibrio — Silman',
-        tema: 'Siete desequilibrios',
-        nivel: 'Medio',
-        teoria: 'Silman enseña a buscar: piezas superiores, estructura de peones, espacio, seguridad del rey, línea abierta, iniciativa y desarrollo. El plan nace de ahí.',
-        grid: [
-          ['r','n','b','q','k','b','n','r'],
-          ['p','p','p','p','p','p','p','p'],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ','P',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          ['P','P','P','P',' ','P','P','P'],
-          ['R','N','B','Q','K','B','N','R']
-        ],
-        turno: BLANCO,
-        jugadaEsperada: [[4,6],[4,5]], // e2-e4 simplificado
-        pista: 'Avanza el peón de e para ganar espacio y abrir líneas.',
-        explicacion: '1.e4 gana espacio en el centro, abre la diagonal del alfil y crea más movilidad para las piezas blancas. Silman llamaría a esto ganar "espacio", uno de los siete desequilibrios.',
-        completada: false
-      },
-      {
-        id: 'silman-linea-abierta',
-        libro: 'Reasumir el Desequilibrio — Silman',
-        tema: 'Líneas abiertas para torres',
-        nivel: 'Medio',
-        teoria: 'Una torre en una línea abierta (columna sin peones) es muy poderosa. Busca abrir columnas para tus torres.',
-        grid: [
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          ['r',' ',' ',' ',' ',' ',' ',' '], // torre negra en a8
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          ['R',' ',' ',' ',' ',' ',' ',' ']  // torre blanca en a1
-        ],
-        turno: BLANCO,
-        jugadaEsperada: [[0,6],[0,5]], // Ta1-a? (simplificado)
-        pista: 'Busca abrir la columna a para tu torre.',
-        explicacion: 'Cuando no hay peones en una columna, la torre puede entrar en la séptima octava fila y atacar peones débiles. Silman enfatiza buscar líneas abiertas como ventaja estratégica.',
-        completada: false
-      }
-    ]
-  },
-  {
-    id: 'mod6',
-    libro: 'Grand Prix Attack / Táctica',
-    autor: 'Evgeni Polugayevsky',
-    nivel: 'Avanzado',
-    descripcion: 'Ataque al rey, sacrificios y debilidades de color.',
-    lecciones: [
-      {
-        id: 'polugaevsky-sacrificio',
-        libro: 'Ataque al rey — Polugayevsky',
-        tema: 'Sacrificio para abrir líneas',
-        nivel: 'Avanzado',
-        teoria: 'Un sacrificio de peón o pieza puede abrir líneas críticas hacia el rey enemigo. La iniciativa vale más que el material.',
-        grid: [
-          ['r','n','b','q','k','b','n','r'],
-          ['p','p','p','p','p','p','p','p'],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          ['P','P','P','P','P','P','P','P'],
-          ['R','N','B','Q','K','B','N','R']
-        ],
-        turno: BLANCO,
-        jugadaEsperada: [[4,6],[4,4]], // e2-e4 apertura
-        pista: 'Abre el centro para lanzar el ataque.',
-        explicacion: '1.e4 abre líneas para el alfil y la dama, iniciando el ataque. Polugayevsky enseñaba que en el ataque, el tiempo y la iniciativa son más importantes que el material.',
-        completada: false
+        teoria: 'Con pocas piezas el rey deja de ser un estorbo y se convierte en una pieza de ataque. En los finales de peones, el rey que llega antes al centro decide: gana espacio, defiende sus peones y bloquea los del rival.',
+        fen: '8/8/4k3/8/4P3/4K3/8/8 w - - 0 1',
+        jugada: 'Kd4',
+        pista: 'Acerca el rey al centro, donde hay espacio y tu peón.',
+        explicacion: '1.Rd4 centraliza el rey y se coloca delante de su propio peón, apoyando el avance e5. Las negras ya no pueden acercarse sin ceder la oposición.'
       }
     ]
   }
 ];
-
-export const DIFICULTAD_ORDEN = ['Básico','Básico-Medio','Medio','Medio-Avanzado','Avanzado'];

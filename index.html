@@ -20,8 +20,9 @@
   </div>
   <nav class="navegacion">
     <button class="btn-nav activo" data-seccion="jugar">Jugar</button>
-    <button class="btn-nav" data-seccion="curso-interactivo">Curso Interactivo</button>
+    <button class="btn-nav" data-seccion="curso">Curso</button>
     <button class="btn-nav" data-seccion="entrenamiento">Entrenamiento</button>
+    <button class="btn-nav" data-seccion="aperturas">Aperturas</button>
   </nav>
 </header>
 
@@ -46,125 +47,40 @@
     </div>
   </section>
 
-  <!-- ===== PANEL IZQUIERDO: CURSO (oculto por defecto) ===== -->
-  <section id="seccion-curso" class="seccion curso-contenedor oculto">
+  <!-- ===== CURSO ===== -->
+  <section id="seccion-curso" class="seccion oculto">
     <div class="card">
-      <h2>📚 Curso de Ajedrez</h2>
-      <p class="curso-intro">
-        Aprende desde cero o mejora tu nivel. Contenido creado por <strong>ALEJANDRO QUINTERO RUIZ</strong>.
+      <h2>📚 Curso</h2>
+      <p class="seccion-intro">
+        Lecciones basadas en libros clásicos de ajedrez. Lee la teoría y encuentra la jugada clave en el tablero.
       </p>
-      <div id="modulos-curso"></div>
+      <div id="curso-lista"></div>
+      <div id="curso-panel" class="puzzle-panel"></div>
     </div>
   </section>
 
-  <!-- ===== PANEL IZQUIERDO: ENTRENAMIENTO (oculto por defecto) ===== -->
-  <section id="seccion-entrenamiento" class="seccion curso-contenedor oculto">
+  <!-- ===== ENTRENAMIENTO ===== -->
+  <section id="seccion-entrenamiento" class="seccion oculto">
     <div class="card">
-      <h2>🎯 Entrenamiento de Jugadas</h2>
-      <p class="entreno-intro">
-        Practica posiciones clave inspiradas en la teoría de libros clásicos de ajedrez.
-        Encuentra la mejor jugada y recibe retroalimentación inmediata.
+      <h2>🎯 Entrenamiento</h2>
+      <p class="seccion-intro">
+        Posiciones de táctica y de apertura. Encuentra la jugada correcta y recibe la explicación al instante.
       </p>
-
-      <div class="entreno-lista" id="entreno-lista"></div>
-
-      <div class="entreno-ejercicio oculto" id="entreno-ejercicio">
-        <div class="entreno-header">
-          <h3 id="entreno-titulo">Título</h3>
-          <span class="entreno-badge" id="entreno-nivel">Nivel</span>
-        </div>
-        <p id="entreno-descripcion" class="entreno-descripcion"></p>
-        <div class="entreno-tablero-wrap">
-          <div id="tablero-entreno" class="tablero-entreno"></div>
-          <div id="coords-entreno" class="coordenadas"></div>
-        </div>
-        <div class="entreno-feedback" id="entreno-feedback"></div>
-        <div class="entreno-controles">
-          <button class="btn btn-secundario" id="entreno-pista">💡 Pista</button>
-          <button class="btn" id="entreno-solucion">Ver solución</button>
-          <button class="btn btn-secundario" id="entreno-siguiente">Siguiente ejercicio ↗</button>
-        </div>
-        <div id="entreno-explicacion" class="entreno-explicacion oculto"></div>
-      </div>
+      <div id="entreno-filtros" class="filtros"></div>
+      <div id="entreno-lista"></div>
+      <div id="entreno-panel" class="puzzle-panel"></div>
     </div>
   </section>
 
-  <!-- ===== PANEL IZQUIERDO: CURSO INTERACTIVO (oculto por defecto) ===== -->
-  <section id="seccion-curso-interactivo" class="seccion curso-contenedor oculto">
+  <!-- ===== APERTURAS ===== -->
+  <section id="seccion-aperturas" class="seccion oculto">
     <div class="card">
-      <h2>📚 Curso Interactivo — Aprender Jugando</h2>
-      <p class="curso-intro">
-        Cada lección se basa en un libro clásico de ajedrez. Lee la teoría, encuentra la jugada clave en el tablero y avanza.
+      <h2>♟️ Aperturas</h2>
+      <p class="seccion-intro">
+        Juega tú las blancas: las negras responden solas y cada jugada llega con su explicación.
       </p>
-
-      <div class="curso-progreso">
-        <div class="curso-progreso-barra" id="curso-progreso-barra"></div>
-        <div class="curso-progreso-texto" id="curso-progreso-texto">0 / 0 lecciones</div>
-      </div>
-
-      <div id="curso-navegacion" class="curso-nav">
-        <button class="btn btn-secundario" id="btn-curso-anterior">← Anterior</button>
-        <button class="btn btn-secundario" id="btn-curso-siguiente">Siguiente →</button>
-      </div>
-
-      <div class="curso-contenido" id="curso-contenido">
-        <!-- Se renderiza dinámicamente -->
-      </div>
-
-      <div class="curso-feedback" id="curso-feedback"></div>
-      <div class="curso-explicacion oculto" id="curso-explicacion"></div>
-
-      <div class="curso-controles" id="curso-controles">
-        <button class="btn btn-secundario" id="btn-curso-pista">💡 Pista</button>
-        <button class="btn" id="btn-curso-solucion">Ver solución</button>
-        <button class="btn btn-secundario" id="btn-curso-siguiente-leccion">Siguiente lección ↗</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== PANEL IZQUIERDO: APERTURAS (oculto por defecto) ===== -->
-  <section id="seccion-aperturas" class="seccion curso-contenedor oculto">
-    <div class="card">
-      <h2>♟️ Entrenamiento de Aperturas</h2>
-      <p class="entreno-intro">
-        Aprende las aperturas clásicas y sus objetivos estratégicos. Reconoce los primeros movimientos y comprende el plan detrás de cada uno.
-      </p>
-      <div class="apertura-lista" id="apertura-lista"></div>
-      <div class="apertura-detalle oculto" id="apertura-detalle">
-        <h3 id="apertura-nombre"></h3>
-        <p id="apertura-descripcion"></p>
-        <p id="apertura-objetivo"></p>
-        <div class="apertura-libro" id="apertura-libro"></div>
-        <div id="tablero-apertura" class="tablero-entreno"></div>
-        <div id="coords-apertura" class="coordenadas"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== PANEL IZQUIERDO: TÁCTICA (oculto por defecto) ===== -->
-  <section id="seccion-tactica" class="seccion curso-contenedor oculto">
-    <div class="card">
-      <h2>⚡ Entrenamiento de Táctica</h2>
-      <p class="entreno-intro">
-        Practica motivos tácticos clásicos: clavada, doble ataque, enfilada, distracción y más. Encuentra la jugada ganadora.
-      </p>
-      <div class="tactica-lista" id="tactica-lista"></div>
-      <div class="tactica-ejercicio oculto" id="tactica-ejercicio">
-        <div class="tactica-header">
-          <h3 id="tactica-nombre"></h3>
-          <span class="tactica-badge" id="tactica-nivel"></span>
-        </div>
-        <p id="tactica-descripcion"></p>
-        <div id="tablero-tactica" class="tablero-entreno"></div>
-        <div id="coords-tactica" class="coordenadas"></div>
-        <div class="tactica-feedback" id="tactica-feedback"></div>
-        <div class="tactica-controles">
-          <button class="btn btn-secundario" id="tactica-pista">💡 Pista</button>
-          <button class="btn" id="tactica-solucion">Ver solución</button>
-          <button class="btn btn-secundario" id="tactica-siguiente">Siguiente ↗</button>
-        </div>
-        <div id="tactica-explicacion" class="tactica-explicacion oculto"></div>
-      </div>
+      <div id="aperturas-lista"></div>
+      <div id="aperturas-panel" class="puzzle-panel"></div>
     </div>
   </section>
 
@@ -213,10 +129,11 @@
   import { Board } from './js/chesslogic.js';
   import { ChessGame } from './js/game.js';
   import { BLANCO, NEGRO } from './js/chessconstants.js';
-  import { CourseEngine } from './js/course-engine.js';
   import { CURSO_MODULOS } from './js/course-data.js';
   import { APERTURAS } from './js/openings-data.js';
-  import { TACTICAS } from './js/tactics-data.js';
+  import { EJERCICIOS, CATEGORIAS } from './js/training-data.js';
+  import { Puzzle } from './js/puzzle.js';
+  import { Linea } from './js/linea.js';
 
   /* ---------- Referencias del DOM ---------- */
   const boardEl = document.getElementById('tablero');
@@ -233,47 +150,10 @@
   const seccionJugar = document.getElementById('seccion-jugar');
   const seccionCurso = document.getElementById('seccion-curso');
   const seccionEntrenamiento = document.getElementById('seccion-entrenamiento');
-  const seccionCursoInteractivo = document.getElementById('seccion-curso-interactivo');
   const seccionAperturas = document.getElementById('seccion-aperturas');
-  const seccionTactica = document.getElementById('seccion-tactica');
   const btnNavs = document.querySelectorAll('.btn-nav');
-
-  // Referencias curso interactivo
-  const cursoContenidoEl = document.getElementById('curso-contenido');
-  const cursoFeedbackEl = document.getElementById('curso-feedback');
-  const cursoExplicacionEl = document.getElementById('curso-explicacion');
-  const cursoControlesEl = document.getElementById('curso-controles');
-  const btnCursoAnterior = document.getElementById('btn-curso-anterior');
-  const btnCursoSiguiente = document.getElementById('btn-curso-siguiente');
-  const btnCursoPista = document.getElementById('btn-curso-pista');
-  const btnCursoSolucion = document.getElementById('btn-curso-solucion');
-  const btnCursoSiguienteLeccion = document.getElementById('btn-curso-siguiente-leccion');
-  const cursoProgresoBarraEl = document.getElementById('curso-progreso-barra');
-  const cursoProgresoTextoEl = document.getElementById('curso-progreso-texto');
-
-  // Referencias aperturas
-  const aperturaListaEl = document.getElementById('apertura-lista');
-  const aperturaDetalleEl = document.getElementById('apertura-detalle');
-  const aperturaNombreEl = document.getElementById('apertura-nombre');
-  const aperturaDescripcionEl = document.getElementById('apertura-descripcion');
-  const aperturaObjetivoEl = document.getElementById('apertura-objetivo');
-  const aperturaLibroEl = document.getElementById('apertura-libro');
-  const aperturaTableroEl = document.getElementById('tablero-apertura');
-  const aperturaCoordsEl = document.getElementById('coords-apertura');
-
-  // Referencias táctica
-  const tacticaListaEl = document.getElementById('tactica-lista');
-  const tacticaEjEl = document.getElementById('tactica-ejercicio');
-  const tacticaNombreEl = document.getElementById('tactica-nombre');
-  const tacticaNivelEl = document.getElementById('tactica-nivel');
-  const tacticaDescripcionEl = document.getElementById('tactica-descripcion');
-  const tacticaTableroEl = document.getElementById('tablero-tactica');
-  const tacticaCoordsEl = document.getElementById('coords-tactica');
-  const tacticaFeedbackEl = document.getElementById('tactica-feedback');
-  const tacticaExplicacionEl = document.getElementById('tactica-explicacion');
-  const tacticaPista = document.getElementById('tactica-pista');
-  const tacticaSolucion = document.getElementById('tactica-solucion');
-  const tacticaSiguiente = document.getElementById('tactica-siguiente');
+  const panelLateral = document.querySelector('.panel-lateral');
+  const mainEl = document.querySelector('main');
 
   // Glifo sólido para ambos bandos; el color lo decide el CSS según el bando.
   const GLIFO_PIEZA = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
@@ -537,720 +417,318 @@
   });
 
   /* ---------- Navegación de secciones ---------- */
+  const SECCIONES = {
+    jugar: seccionJugar,
+    curso: seccionCurso,
+    entrenamiento: seccionEntrenamiento,
+    aperturas: seccionAperturas
+  };
+
+  function mostrarSeccion(nombre) {
+    for (const [clave, el] of Object.entries(SECCIONES)) {
+      el.classList.toggle('oculto', clave !== nombre);
+    }
+    // El panel de nivel/estado solo tiene sentido jugando: fuera de ahí deja una columna muerta.
+    const jugando = nombre === 'jugar';
+    panelLateral.classList.toggle('oculto', !jugando);
+    mainEl.classList.toggle('ancho', !jugando);
+    if (nombre === 'curso') renderCurso();
+    if (nombre === 'entrenamiento') renderEntrenamiento();
+    if (nombre === 'aperturas') renderAperturas();
+  }
+
   btnNavs.forEach((btn) => {
     btn.addEventListener('click', () => {
       btnNavs.forEach((b) => b.classList.remove('activo'));
       btn.classList.add('activo');
-      const esJugar = btn.dataset.seccion === 'jugar';
-      const esEntreno = btn.dataset.seccion === 'entrenamiento';
-      const esCursoInteractivo = btn.dataset.seccion === 'curso-interactivo';
-      const esAperturas = btn.dataset.seccion === 'aperturas';
-      const esTactica = btn.dataset.seccion === 'tactica';
-      seccionJugar.classList.toggle('oculto', !esJugar);
-      seccionCurso.classList.toggle('oculto', esJugar || esEntreno || esCursoInteractivo || esAperturas || esTactica);
-      seccionEntrenamiento.classList.toggle('oculto', !esEntreno);
-      seccionCursoInteractivo.classList.toggle('oculto', !esCursoInteractivo);
-      seccionAperturas.classList.toggle('oculto', !esAperturas);
-      seccionTactica.classList.toggle('oculto', !esTactica);
-      if (!esJugar && !esEntreno && !esCursoInteractivo && !esAperturas && !esTactica) renderCurso();
-      if (esEntreno) renderEntrenamiento();
-      if (esCursoInteractivo) renderCursoInteractivo();
-      if (esAperturas) renderAperturas();
-      if (esTactica) renderTactica();
+      mostrarSeccion(btn.dataset.seccion);
     });
   });
+
+  /* ---------- Progreso ---------- */
+  const CLAVE_PROGRESO = 'chesslord_resueltos';
+  let resueltos = new Set();
+  try {
+    resueltos = new Set(JSON.parse(localStorage.getItem(CLAVE_PROGRESO) || '[]'));
+  } catch {
+    resueltos = new Set(); // almacenamiento no disponible
+  }
+
+  function guardarResuelto(id) {
+    if (!id) return;
+    resueltos.add(id);
+    try {
+      localStorage.setItem(CLAVE_PROGRESO, JSON.stringify([...resueltos]));
+    } catch {
+      // sin almacenamiento: el progreso vive solo en la sesión
+    }
+  }
+
+  function marcarResueltos() {
+    document.querySelectorAll('[data-ejercicio]').forEach((el) => {
+      el.classList.toggle('resuelto', resueltos.has(el.dataset.ejercicio));
+    });
+  }
+
+  /* ---------- Tablero de ejercicios ---------- */
+  function pintarMiniTablero(contenedor, grid, alClic, sel) {
+    const fragmento = document.createDocumentFragment();
+    for (let f = 0; f < 8; f++) {
+      for (let c = 0; c < 8; c++) {
+        const casilla = document.createElement('div');
+        casilla.className = `casilla-entreno ${(f + c) % 2 === 0 ? 'clara' : 'oscura'}`;
+        casilla.dataset.c = c;
+        casilla.dataset.f = f;
+        const pieza = grid[f][c];
+        if (pieza !== ' ') {
+          const span = document.createElement('span');
+          span.className = 'pieza-entreno ' + (pieza === pieza.toUpperCase() ? 'blanca' : 'negra');
+          span.textContent = GLIFO_PIEZA[pieza.toLowerCase()];
+          casilla.appendChild(span);
+        }
+        if (sel && sel.c === c && sel.f === f) casilla.classList.add('seleccionada');
+        casilla.setAttribute('aria-label', `${COLS[c]}${8 - f}`);
+        casilla.addEventListener('click', () => alClic(c, f));
+        fragmento.appendChild(casilla);
+      }
+    }
+    contenedor.replaceChildren(fragmento);
+  }
+
+  function crearCoordenadas() {
+    const div = document.createElement('div');
+    div.className = 'coordenadas';
+    div.innerHTML = [...COLS].map((letra) => `<div>${letra}</div>`).join('');
+    return div;
+  }
+
+  function crearLista(contenedor, items, alElegir) {
+    contenedor.replaceChildren();
+    items.forEach(({ id, titulo, nivel }) => {
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'puzzle-item';
+      boton.dataset.ejercicio = id;
+      boton.innerHTML = `<strong>${titulo}</strong><span class="etiqueta">${nivel}</span>`;
+      boton.addEventListener('click', () => {
+        contenedor.querySelectorAll('.puzzle-item').forEach((b) => b.classList.remove('activo'));
+        boton.classList.add('activo');
+        alElegir(id);
+      });
+      contenedor.appendChild(boton);
+    });
+    marcarResueltos();
+  }
 
   /* ---------- Curso ---------- */
-  const CURSO = [
-    {
-      titulo: 'Módulo 1 — Las piezas y su movimiento',
-      lecciones: [
-        {
-          titulo: 'El tablero y las casillas',
-          texto: 'El tablero tiene 64 casillas (8×8), alternando colores claro y oscuro. Las columnas se llaman archivos (a–h) y las filas se llaman rangos (1–8). Cada casilla tiene una coordenada única, como e4 o d5.'
-        },
-        {
-          titulo: 'El Rey (K / k)',
-          texto: 'El rey se mueve una casilla en cualquier dirección. Es la pieza más importante: si el rey recibe jaque mate, se pierde la partida.',
-          ejercicio: {
-            enunciado: '¿Cuántas casillas puede alcanzar el rey situado en el centro del tablero (e4)?',
-            respuestas: ['8', 'ocho'],
-            ayuda: 'Cuenta las ocho casillas que lo rodean.'
-          }
-        },
-        {
-          titulo: 'La Reina (Q / q)',
-          texto: 'La reina es la pieza más poderosa: se mueve cualquier número de casillas en horizontal, vertical o diagonal.',
-          ejercicio: {
-            enunciado: '¿Cuántas direcciones distintas tiene la reina?',
-            respuestas: ['8', 'ocho'],
-            ayuda: 'Cuatro rectas y cuatro diagonales.'
-          }
-        },
-        {
-          titulo: 'La Torre (R / r)',
-          texto: 'La torre se mueve cualquier número de casillas en horizontal o vertical. Participa en el enroque.',
-          ejercicio: {
-            enunciado: '¿Cuántas casillas alcanza una torre desde a1 en un tablero vacío?',
-            respuestas: ['14', 'catorce'],
-            ayuda: 'Siete casillas en la columna a y siete en la fila 1.'
-          }
-        },
-        {
-          titulo: 'El Alfil (B / b)',
-          texto: 'El alfil se mueve cualquier número de casillas en diagonal. Siempre se queda en casillas del mismo color.',
-          ejercicio: {
-            enunciado: '¿En qué línea se mueve el alfil? (horizontal, vertical o diagonal)',
-            respuestas: ['diagonal', 'en diagonal', 'diagonales'],
-            ayuda: 'Es la única pieza que nunca cambia de color de casilla.'
-          }
-        },
-        {
-          titulo: 'El Caballo (N / n)',
-          texto: 'El caballo se mueve en "L": dos casillas en línea recta y una a un lado. Es la única pieza que puede saltar sobre otras piezas.',
-          ejercicio: {
-            enunciado: '¿Qué pieza puede saltar por encima de otras?',
-            respuestas: ['caballo', 'el caballo', 'n', 'el n'],
-            ayuda: 'Es la única que no necesita camino libre.'
-          }
-        },
-        {
-          titulo: 'El Peón (P / p)',
-          texto: 'El peón avanza una casilla hacia adelante (dos desde su posición inicial). Captura en diagonal. Al llegar a la última fila se corona: normalmente se elige dama.'
-        }
-      ]
-    },
-    {
-      titulo: 'Módulo 2 — Reglas esenciales',
-      lecciones: [
-        {
-          titulo: 'Jaque y Jaque Mate',
-          texto: 'El jaque ocurre cuando el rey está bajo ataque. Debes salir del jaque en tu movimiento. Si no puedes, es jaque mate y pierdes.'
-        },
-        {
-          titulo: 'Enroque',
-          texto: 'Movimiento especial del rey con una torre. El rey se mueve dos casillas hacia la torre y esta salta al otro lado. Solo se puede hacer si el rey y la torre no se han movido, no hay piezas entre medio y el rey no está en jaque ni cruza una casilla atacada.',
-          ejercicio: {
-            enunciado: '¿Cuántas casillas se mueve el rey en el enroque?',
-            respuestas: ['2', 'dos'],
-            ayuda: 'Siempre son dos, hacia la torre.'
-          }
-        },
-        {
-          titulo: 'Captura al paso (En passant)',
-          texto: 'Si un peón avanza dos casillas desde su posición inicial y pasa junto a un peón enemigo, ese peón enemigo puede capturarlo como si hubiera avanzado solo una casilla. Solo vale en la jugada inmediatamente siguiente.'
-        },
-        {
-          titulo: 'Tablas por ahogado',
-          texto: 'Si el jugador al que le toca mover no tiene ningún movimiento legal y su rey no está en jaque, es ahogado: tablas.',
-          ejercicio: {
-            enunciado: '¿Cómo termina una partida por ahogado: victoria de quien ahoga o tablas?',
-            respuestas: ['tablas', 'empate', 'son tablas'],
-            ayuda: 'Nadie gana cuando falta el jaque.'
-          }
-        }
-      ]
-    },
-    {
-      titulo: 'Módulo 3 — Táctica básica',
-      lecciones: [
-        {
-          titulo: 'Doble ataque (fork)',
-          texto: 'Atacar dos piezas enemigas al mismo tiempo con una sola pieza, forzando a tu oponente a perder material.'
-        },
-        {
-          titulo: 'Clavada (pin)',
-          texto: 'Atacar una pieza que no puede moverse porque al hacerlo dejaría al descubierto una pieza más valiosa detrás, normalmente el rey.'
-        },
-        {
-          titulo: 'Enfilada (skewer)',
-          texto: 'Parecida a la clavada, pero aquí la pieza valiosa está delante: al moverse expone la pieza de menor valor que está detrás, que se captura.'
-        }
-      ]
-    }
-  ];
+  const cursoListaEl = document.getElementById('curso-lista');
+  const cursoPanelEl = document.getElementById('curso-panel');
 
-  const normalizar = (texto) => texto.trim().toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  let cursoMontado = false;
 
   function renderCurso() {
-    const contenedor = document.getElementById('modulos-curso');
-    contenedor.replaceChildren();
-    CURSO.forEach((modulo, mi) => {
-      const modDiv = document.createElement('div');
-      modDiv.className = 'leccion';
-      const h3 = document.createElement('h3');
-      h3.textContent = modulo.titulo;
-      modDiv.appendChild(h3);
+    if (cursoMontado) return;
+    cursoMontado = true;
 
-      modulo.lecciones.forEach((leccion, li) => {
-        const lesDiv = document.createElement('div');
-        lesDiv.className = 'leccion';
-        const h4 = document.createElement('h4');
-        h4.textContent = leccion.titulo;
-        const p = document.createElement('p');
-        p.textContent = leccion.texto;
-        lesDiv.append(h4, p);
+    CURSO_MODULOS.forEach((modulo) => {
+      const titulo = document.createElement('h3');
+      titulo.className = 'modulo-titulo';
+      titulo.textContent = `${modulo.libro} · ${modulo.autor}`;
+      cursoListaEl.appendChild(titulo);
 
-        if (leccion.ejercicio) {
-          const caja = document.createElement('div');
-          caja.className = 'ejercicio';
-          const titulo = document.createElement('h4');
-          titulo.textContent = `❓ ${leccion.ejercicio.enunciado}`;
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.maxLength = 20;
-          input.placeholder = 'Tu respuesta';
-          input.setAttribute('aria-label', leccion.ejercicio.enunciado);
-          const boton = document.createElement('button');
-          boton.className = 'btn';
-          boton.textContent = 'Verificar';
-          const feedback = document.createElement('div');
-          feedback.className = 'feedback';
+      const lista = document.createElement('div');
+      lista.className = 'puzzle-lista';
+      cursoListaEl.appendChild(lista);
 
-          const verificar = () => {
-            const valor = normalizar(input.value);
-            if (!valor) { feedback.textContent = ''; return; }
-            const acierto = leccion.ejercicio.respuestas.some((r) => normalizar(r) === valor);
-            feedback.textContent = acierto
-              ? '✅ Correcto. ¡Bien hecho!'
-              : `❌ Intenta de nuevo. ${leccion.ejercicio.ayuda || ''}`.trim();
-            feedback.className = 'feedback ' + (acierto ? 'exito' : 'error');
-          };
-
-          boton.addEventListener('click', verificar);
-          input.addEventListener('keydown', (e) => { if (e.key === 'Enter') verificar(); });
-          caja.append(titulo, input, boton, feedback);
-          lesDiv.appendChild(caja);
-        }
-        modDiv.appendChild(lesDiv);
-      });
-      contenedor.appendChild(modDiv);
+      crearLista(
+        lista,
+        modulo.lecciones.map((l) => ({ id: l.id, titulo: l.tema, nivel: l.nivel })),
+        (id) => abrirPuzzle(cursoPanelEl, modulo.lecciones.find((l) => l.id === id))
+      );
     });
   }
 
-  /* ---------- Entrenamiento de jugadas ---------- */
-  // Posiciones didácticas inspiradas en la teoría de libros clásicos de ajedrez
-  // (Morphy, Capablanca, Lasker, Silman, Polugayevsky, etc.). Cada ejercicio
-  // trae una posición reducida, la jugada clave esperada y su explicación.
-  const EJERCICIOS = [
-    {
-      id: 'centro_morphy',
-      libro: 'Morphy — Las lecciones de ajedrez',
-      tema: 'Control del centro',
-      nivel: 'Básico',
-      descripcion: 'Ocupar el centro con los peones abre líneas para las piezas y limita al rival.',
-      grid: [
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', 'P', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
-      ],
-      turno: BLANCO,
-      solucion: [[4, 6], [4, 4]], // e2-e4
-      explicacion: '<strong>1.e4</strong> ocupa el centro, libera al alfil de c1 y a la dama, y controla d5 y f5.'
-    },
-    {
-      id: 'desarrollo_capablanca',
-      libro: 'Capablanca — Fundamentos del ajedrez',
-      tema: 'Desarrollo de piezas',
-      nivel: 'Básico',
-      descripcion: 'Desarrolla los caballos hacia el centro antes de mover las piezas mayores.',
-      grid: [
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', 'P', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', 'N', ' '],
-        [' ', ' ', ' ', ' ', 'K', ' ', ' ', ' ']
-      ],
-      turno: BLANCO,
-      solucion: [[6, 7], [5, 5]], // Ng1-f3
-      explicacion: '<strong>Cf3</strong> desarrolla el caballo hacia el centro, ataca e5 y prepara el enroque.'
-    },
-    {
-      id: 'doble_ataque_polugaevsky',
-      libro: 'Polugayevsky — Grand Prix Attack / Táctica',
-      tema: 'Doble ataque (fork)',
-      nivel: 'Medio',
-      descripcion: 'Mueve el caballo para crear un doble ataque: al mismo tiempo amenazas al rey y a la dama enemiga.',
-      grid: [
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', 'k', ' ', ' ', ' '], // rey negro en e6 (f=2, c=4)
-        [' ', ' ', 'q', ' ', ' ', ' ', ' ', ' '], // dama negra en b5 (f=3, c=1)
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', 'N', ' ', ' ', ' '], // caballo blanco en e2 (f=5, c=4)
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', 'K', ' ', ' ', ' ']
-      ],
-      turno: BLANCO,
-      solucion: [[4, 5], [3, 3]], // Caballo e2-d4 ataca rey e6 y dama b5
-      explicacion: '<strong>Cd4</strong> es doble ataque: ataca al rey en e6 y a la dama en b5. El rival debe salvar al rey y pierde la dama.'
-    },
-    {
-      id: 'peon_aislado_silman',
-      libro: 'Silman — Reasumir el desequilibrio',
-      tema: 'Peón aislado',
-      nivel: 'Medio',
-      descripcion: 'El peón aislado es débil porque no puede ser defendido por otros peones. Atácalo con una pieza.',
-      grid: [
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', 'p', ' ', ' ', ' '], // peón negro aislado en e5 (f=3, c=4)
-        [' ', ' ', ' ', ' ', 'P', ' ', ' ', ' '], // peón blanco en e4 (f=4, c=4)
-        [' ', ' ', ' ', 'N', ' ', ' ', ' ', ' '], // caballo blanco en d3 (f=5, c=3)
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', 'K', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'k']
-      ],
-      turno: BLANCO,
-      solucion: [[3, 5], [4, 4]], // Caballo d3 -> e5 captura el peón aislado
-      explicacion: '<strong>Cxe5</strong> captura el peón aislado. Sin peones vecinos que lo defiendan, queda perdido.'
-    },
-    {
-      id: 'enfilada_dama_lasker',
-      libro: 'Lasker — Manual de ajedrez',
-      tema: 'Enfilada (skewer)',
-      nivel: 'Maestro',
-      descripcion: 'Enfilada: alinea tu dama con el rey enemigo y una pieza valiosa detrás. El rey debe moverse y pierdes la pieza de atrás.',
-      grid: [
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', 'k', ' ', ' ', ' ', ' '], // rey negro en d8 (f=0, c=3) - simplificado fila 0
-        [' ', ' ', ' ', 'Q', ' ', ' ', ' ', ' '], // dama blanca en d1 (f=3, c=3) - simplificado
-        [' ', ' ', ' ', 'B', ' ', ' ', ' ', ' '], // alfil negro en d7? no, usemos fila lógica
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' ', 'K', ' ', ' ', ' ']
-      ],
-      turno: BLANCO,
-      solucion: [[3, 3], [0, 3]], // Dama d1-d8 enfilada al rey (simplificado)
-      explicacion: '<strong>Dd8+</strong> enfilada al rey: el rey debe moverse y pierdes la pieza que estaba detrás.'
-    }
-  ];
-
-  let entrenoEjercicio = null;
-  let entrenoBoard = null;
-  let entrenoSel = null; // {c,f}
-
+  /* ---------- Entrenamiento ---------- */
+  const entrenoFiltrosEl = document.getElementById('entreno-filtros');
   const entrenoListaEl = document.getElementById('entreno-lista');
-  const entrenoEjEl = document.getElementById('entreno-ejercicio');
-  const entrenoTableroEl = document.getElementById('tablero-entreno');
-  const entrenoCoordsEl = document.getElementById('coords-entreno');
-  const entrenoTituloEl = document.getElementById('entreno-titulo');
-  const entrenoNivelEl = document.getElementById('entreno-nivel');
-  const entrenoDescEl = document.getElementById('entreno-descripcion');
-  const entrenoFeedbackEl = document.getElementById('entreno-feedback');
-  const entrenoExplicacionEl = document.getElementById('entreno-explicacion');
+  const entrenoPanelEl = document.getElementById('entreno-panel');
 
-  const PIEZAS_ENTRENO = {
-    'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
-    'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
-  };
+  let categoriaActiva = CATEGORIAS[0];
+  let categoriaPintada = null;
+  let entrenoMontado = false;
 
-  function renderListaEntrenamiento() {
-    entrenoListaEl.replaceChildren();
-    EJERCICIOS.forEach((ej) => {
-      const item = document.createElement('div');
-      item.className = 'entreno-item';
-      item.innerHTML = `
-        <div class="entreno-item-info">
-          <strong>${ej.tema}</strong>
-          <span class="entreno-item-tema">${ej.libro}</span>
-          <span class="entreno-item-libro">${ej.descripcion}</span>
-        </div>
-        <span class="entreno-item-nivel">${ej.nivel}</span>
-      `;
-      item.addEventListener('click', () => {
-        document.querySelectorAll('.entreno-item').forEach((x) => x.classList.remove('activo'));
-        item.classList.add('activo');
-        iniciarEjercicio(ej.id);
-      });
-      entrenoListaEl.appendChild(item);
+  function pintarChips() {
+    entrenoFiltrosEl.querySelectorAll('.chip').forEach((chip) => {
+      chip.classList.toggle('activo', chip.dataset.categoria === categoriaActiva);
     });
   }
 
-  function iniciarEjercicio(id) {
-    const ej = EJERCICIOS.find((e) => e.id === id);
-    if (!ej) return;
-    entrenoEjercicio = ej;
-    entrenoBoard = new Board();
-    entrenoBoard.grid = ej.grid.map((row) => [...row]);
-    entrenoSel = null;
-
-    entrenoEjEl.classList.remove('oculto');
-    entrenoFeedbackEl.textContent = '';
-    entrenoFeedbackEl.className = 'entreno-feedback';
-    entrenoExplicacionEl.classList.add('oculto');
-
-    entrenoTituloEl.textContent = ej.tema;
-    entrenoNivelEl.textContent = ej.nivel;
-    entrenoDescEl.textContent = ej.descripcion;
-
-    renderTableroEntreno();
+  function pintarListaEntreno() {
+    const items = EJERCICIOS
+      .filter((ej) => ej.categoria === categoriaActiva)
+      .map((ej) => ({ id: ej.id, titulo: ej.tema, nivel: ej.nivel }));
+    entrenoPanelEl.replaceChildren();
+    crearLista(entrenoListaEl, items, (id) => abrirPuzzle(entrenoPanelEl, EJERCICIOS.find((ej) => ej.id === id)));
   }
 
-  function renderTableroEntreno() {
-    entrenoTableroEl.replaceChildren();
-    const grid = entrenoBoard.grid;
-    const turno = entrenoEjercicio.turno;
-    for (let f = 0; f < 8; f++) {
-      for (let c = 0; c < 8; c++) {
-        const casilla = document.createElement('div');
-        casilla.className = `casilla-entreno ${(f + c) % 2 === 0 ? 'clara' : 'oscura'}`;
-        casilla.dataset.c = c;
-        casilla.dataset.f = f;
-        const ficha = grid[f][c];
-        if (ficha !== ' ') {
-          const span = document.createElement('span');
-          span.className = 'pieza-entreno';
-          span.textContent = PIEZAS_ENTRENO[ficha];
-          casilla.appendChild(span);
-        }
-        if (entrenoSel && entrenoSel.c === c && entrenoSel.f === f) {
-          casilla.classList.add('seleccionada');
-        }
-        casilla.addEventListener('click', () => handleClickEntreno(c, f));
-        entrenoTableroEl.appendChild(casilla);
-      }
+  function renderEntrenamiento() {
+    if (!entrenoMontado) {
+      entrenoMontado = true;
+      CATEGORIAS.forEach((categoria) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip';
+        chip.dataset.categoria = categoria;
+        chip.textContent = categoria;
+        chip.addEventListener('click', () => {
+          categoriaActiva = categoria;
+          categoriaPintada = null;
+          renderEntrenamiento();
+        });
+        entrenoFiltrosEl.appendChild(chip);
+      });
     }
-    const cols = 'abcdefgh';
-    entrenoCoordsEl.replaceChildren();
-    for (let c = 0; c < 8; c++) {
-      const d = document.createElement('div');
-      d.textContent = cols[c];
-      entrenoCoordsEl.appendChild(d);
+    pintarChips();
+    // No repintar si la categoría ya está en pantalla: perdería el ejercicio abierto.
+    if (categoriaPintada !== categoriaActiva) {
+      categoriaPintada = categoriaActiva;
+      pintarListaEntreno();
     }
   }
 
-  function handleClickEntreno(c, f) {
-    const grid = entrenoBoard.grid;
-    const ficha = grid[f][c];
-    const esPropia = ficha !== ' ' && entrenoBoard.getColor(ficha) === entrenoEjercicio.turno;
+  /* ---------- Panel de un ejercicio ---------- */
+  function abrirPuzzle(panelEl, def) {
+    if (!def) return;
+    const puzzle = new Puzzle(def);
 
-    if (entrenoSel) {
-      const esSolucion = entrenoSel.c === c && entrenoSel.f === f ? false :
-        entrenoEjercicio.solucion[0][0] === entrenoSel.c &&
-        entrenoEjercicio.solucion[0][1] === entrenoSel.f &&
-        entrenoEjercicio.solucion[1][0] === c &&
-        entrenoEjercicio.solucion[1][1] === f;
-
-      const esLegal = entrenoBoard.isValidMove([[entrenoSel.c, entrenoSel.f], [c, f]], entrenoEjercicio.turno);
-
-      if (esSolucion) {
-        entrenoFeedbackEl.textContent = '✅ ¡Correcto! Has encontrado la jugada clave.';
-        entrenoFeedbackEl.className = 'entreno-feedback exito';
-        entrenoExplicacionEl.innerHTML = `<h4>📖 Explicación</h4><p>${entrenoEjercicio.explicacion}</p>`;
-        entrenoExplicacionEl.classList.remove('oculto');
-      } else if (esLegal) {
-        entrenoFeedbackEl.textContent = '⚠️ Movimiento legal, pero no es la jugada clave que buscamos. Intenta de nuevo.';
-        entrenoFeedbackEl.className = 'entreno-feedback info';
-      } else {
-        entrenoFeedbackEl.textContent = '❌ Movimiento ilegal.';
-        entrenoFeedbackEl.className = 'entreno-feedback error';
-      }
-      entrenoSel = null;
-      renderTableroEntreno();
-      return;
-    }
-
-    if (esPropia) {
-      entrenoSel = { c, f };
-      renderTableroEntreno();
-    }
-  }
-
-  document.getElementById('entreno-pista').addEventListener('click', () => {
-    const ej = entrenoEjercicio;
-    const [[cO, fO], [cD, fD]] = ej.solucion;
-    const cols = 'abcdefgh';
-    entrenoFeedbackEl.textContent = `💡 Pista: mueve la pieza de ${cols[cO]}${8 - fO} a ${cols[cD]}${8 - fD}.`;
-    entrenoFeedbackEl.className = 'entreno-feedback info';
-  });
-
-  document.getElementById('entreno-solucion').addEventListener('click', () => {
-    const ej = entrenoEjercicio;
-    entrenoFeedbackEl.textContent = '🔎 Solución revelada.';
-    entrenoFeedbackEl.className = 'entreno-feedback info';
-    entrenoExplicacionEl.innerHTML = `<h4>📖 Solución y teoría</h4><p>${ej.explicacion}</p>`;
-    entrenoExplicacionEl.classList.remove('oculto');
-  });
-
-  document.getElementById('entreno-siguiente').addEventListener('click', () => {
-    entrenoEjEl.classList.add('oculto');
-    entrenoFeedbackEl.textContent = '';
-    entrenoExplicacionEl.classList.add('oculto');
-    renderListaEntrenamiento();
-  });
-
-  /* ---------- Curso interactivo (CourseEngine) ---------- */
-  const PIEZAS_UNICODE = {
-    'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
-    'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
-  };
-
-  function renderTableroSimple(containerEl, grid, onClick) {
-    containerEl.replaceChildren();
-    for (let f = 0; f < 8; f++) {
-      for (let c = 0; c < 8; c++) {
-        const casilla = document.createElement('div');
-        casilla.className = `casilla-entreno ${(f + c) % 2 === 0 ? 'clara' : 'oscura'}`;
-        casilla.dataset.c = c;
-        casilla.dataset.f = f;
-        const ficha = grid[f][c];
-        if (ficha !== ' ') {
-          const span = document.createElement('span');
-          span.className = 'pieza-entreno';
-          span.textContent = PIEZAS_UNICODE[ficha];
-          casilla.appendChild(span);
-        }
-        if (onClick) casilla.addEventListener('click', () => onClick(c, f));
-        containerEl.appendChild(casilla);
-      }
-    }
-    const cols = 'abcdefgh';
-    const coords = containerEl.parentNode.querySelector('.coordenadas') || document.createElement('div');
-    coords.className = 'coordenadas';
-    for (let c = 0; c < 8; c++) {
-      const d = document.createElement('div');
-      d.textContent = cols[c];
-      coords.appendChild(d);
-    }
-    if (!containerEl.parentNode.querySelector('.coordenadas')) containerEl.parentNode.appendChild(coords);
-  }
-
-  function renderCursoInteractivo() {
-    const state = courseEngine.getState();
-    const leccion = state.leccion;
-    if (!leccion) {
-      cursoContenidoEl.innerHTML = '<p>No hay lecciones disponibles.</p>';
-      return;
-    }
-
-    // Progreso
-    const pct = Math.round((state.progreso.completadas / state.progreso.total) * 100);
-    cursoProgresoBarraEl.style.width = pct + '%';
-    cursoProgresoTextoEl.textContent = `${state.progreso.completadas} / ${state.progreso.total} lecciones`;
-
-    // Contenido
-    cursoContenidoEl.innerHTML = `
-      <div class="curso-modulo">
-        <span class="curso-libro">${leccion.libro}</span>
-        <h3>${leccion.tema}</h3>
-        <span class="curso-nivel">Nivel: ${leccion.nivel}</span>
+    panelEl.innerHTML = `
+      <div class="puzzle-cabecera">
+        <h3>${def.tema}</h3>
+        <span class="etiqueta">${def.nivel}</span>
       </div>
-      <p class="curso-teoria">${leccion.teoria}</p>
-      <div class="curso-tablero-wrap">
-        <div id="tablero-curso" class="tablero-entreno"></div>
-        <div id="coords-curso" class="coordenadas"></div>
+      <p class="puzzle-fuente">${def.libro || ''}</p>
+      <p class="puzzle-texto">${def.teoria || def.descripcion || ''}</p>
+      <div class="puzzle-tablero-wrap"></div>
+      <div class="puzzle-feedback"></div>
+      <div class="puzzle-explicacion oculto"></div>
+      <div class="puzzle-controles">
+        <button class="btn btn-secundario" data-accion="pista">💡 Pista</button>
+        <button class="btn btn-secundario" data-accion="solucion">Ver solución</button>
       </div>
     `;
 
-    renderTableroSimple(document.getElementById('tablero-curso'), leccion.grid, (c, f) => {
-      if (state.estado !== 'idle') return;
-      courseEngine.seleccionar(c, f);
-      renderCursoInteractivo();
-    });
+    const wrap = panelEl.querySelector('.puzzle-tablero-wrap');
+    const tablero = document.createElement('div');
+    tablero.className = 'tablero-entreno';
+    wrap.append(tablero, crearCoordenadas());
 
-    // Feedback
-    if (state.mensaje) {
-      cursoFeedbackEl.textContent = state.mensaje;
-      cursoFeedbackEl.className = 'curso-feedback ' +
-        (state.estado === 'correcto' ? 'exito' : state.estado === 'incorrecto' ? 'info' : 'error');
-      cursoFeedbackEl.classList.remove('oculto');
-    } else {
-      cursoFeedbackEl.classList.add('oculto');
-    }
+    const feedback = panelEl.querySelector('.puzzle-feedback');
+    const explicacion = panelEl.querySelector('.puzzle-explicacion');
 
-    // Explicación
-    if (state.explicacionVisible) {
-      cursoExplicacionEl.innerHTML = `<h4>📖 Teoría y explicación</h4><p>${leccion.explicacion}</p>`;
-      cursoExplicacionEl.classList.remove('oculto');
-    } else {
-      cursoExplicacionEl.classList.add('oculto');
-    }
+    const pintar = () => {
+      pintarMiniTablero(tablero, puzzle.grid, (c, f) => {
+        puzzle.seleccionar(c, f);
+        refrescar();
+      }, puzzle.sel);
 
-    // Controles
-    btnCursoAnterior.disabled = !state.tieneAnterior;
-    btnCursoSiguiente.disabled = !state.tieneSiguiente;
-    btnCursoSiguienteLeccion.disabled = state.estado !== 'correcto' || !state.tieneSiguiente;
-    if (state.estado === 'correcto') {
-      btnCursoSiguienteLeccion.textContent = '✅ Siguiente lección';
-    } else {
-      btnCursoSiguienteLeccion.textContent = 'Siguiente lección ↗';
-    }
+      feedback.textContent = puzzle.mensaje;
+      feedback.className = 'puzzle-feedback' + (puzzle.mensaje ? ' ' + puzzle.estado : '');
 
-    // Resaltar casilla seleccionada
-    document.querySelectorAll('#tablero-curso .casilla-entreno').forEach(el => {
-      el.classList.remove('seleccionada');
-      if (state.leccionSel && Number(el.dataset.c) === state.leccionSel.c && Number(el.dataset.f) === state.leccionSel.f) {
-        el.classList.add('seleccionada');
+      if (puzzle.resuelto || puzzle.revelada) {
+        explicacion.innerHTML = `<h4>${puzzle.resuelto ? '✅ Resuelto' : '📖 Solución'}</h4><p>${def.explicacion}</p>`;
+        explicacion.classList.remove('oculto');
+      } else {
+        explicacion.classList.add('oculto');
       }
+    };
+
+    const refrescar = () => {
+      pintar();
+      if (puzzle.resuelto) {
+        guardarResuelto(def.id);
+        marcarResueltos();
+      }
+    };
+
+    panelEl.querySelector('[data-accion="pista"]').addEventListener('click', () => {
+      puzzle.pista();
+      pintar();
     });
+    panelEl.querySelector('[data-accion="solucion"]').addEventListener('click', () => {
+      puzzle.revelar();
+      pintar();
+    });
+
+    pintar();
+    panelEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
-
-  btnCursoAnterior.addEventListener('click', () => {
-    courseEngine.leccionAnterior();
-    renderCursoInteractivo();
-  });
-
-  btnCursoSiguiente.addEventListener('click', () => {
-    courseEngine.siguienteLeccion();
-    renderCursoInteractivo();
-  });
-
-  btnCursoPista.addEventListener('click', () => {
-    courseEngine.mostrarPista();
-    renderCursoInteractivo();
-  });
-
-  btnCursoSolucion.addEventListener('click', () => {
-    courseEngine.mostrarSolucion();
-    renderCursoInteractivo();
-  });
-
-  btnCursoSiguienteLeccion.addEventListener('click', () => {
-    courseEngine.siguienteLeccion();
-    renderCursoInteractivo();
-  });
-
-  // Course engine (se crea después de renderCursoInteractivo para evitar TDZ)
-  const courseEngine = new CourseEngine(CURSO_MODULOS, renderCursoInteractivo);
-  courseEngine.cargarLeccion(0, 0);
 
   /* ---------- Aperturas ---------- */
+  const aperturasListaEl = document.getElementById('aperturas-lista');
+  const aperturasPanelEl = document.getElementById('aperturas-panel');
+
   function renderAperturas() {
-    aperturaListaEl.replaceChildren();
-    APERTURAS.forEach((ap) => {
-      const item = document.createElement('div');
-      item.className = 'entreno-item';
-      item.innerHTML = `
-        <div class="entreno-item-info">
-          <strong>${ap.nombre}</strong>
-          <span class="entreno-item-tema">${ap.libro}</span>
-          <span class="entreno-item-libro">${ap.descripcion}</span>
-        </div>
-        <span class="entreno-item-nivel">${ap.nivel}</span>
-      `;
-      item.addEventListener('click', () => {
-        document.querySelectorAll('.entreno-item').forEach((x) => x.classList.remove('activo'));
-        item.classList.add('activo');
-        aperturaNombreEl.textContent = ap.nombre;
-        aperturaDescripcionEl.textContent = ap.descripcion;
-        aperturaObjetivoEl.textContent = 'Objetivo: ' + ap.objetivo;
-        aperturaLibroEl.innerHTML = `<strong>Fuente:</strong> ${ap.libroReferencia}`;
-        aperturaDetalleEl.classList.remove('oculto');
-        renderTableroSimple(aperturaTableroEl, [
-          ['r','n','b','q','k','b','n','r'],
-          ['p','p','p','p','p','p','p','p'],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          [' ',' ',' ',' ',' ',' ',' ',' '],
-          ['P','P','P','P','P','P','P','P'],
-          ['R','N','B','Q','K','B','N','R']
-        ]);
-      });
-      aperturaListaEl.appendChild(item);
-    });
-    aperturaDetalleEl.classList.add('oculto');
+    if (aperturasListaEl.childElementCount > 0) return;
+    crearLista(
+      aperturasListaEl,
+      APERTURAS.map((op) => ({ id: op.id, titulo: op.nombre, nivel: op.nivel })),
+      (id) => abrirApertura(aperturasPanelEl, APERTURAS.find((op) => op.id === id))
+    );
   }
 
-  /* ---------- Táctica ---------- */
-  function renderTactica() {
-    tacticaListaEl.replaceChildren();
-    TACTICAS.forEach((tac) => {
-      const item = document.createElement('div');
-      item.className = 'entreno-item';
-      item.innerHTML = `
-        <div class="entreno-item-info">
-          <strong>${tac.nombre}</strong>
-          <span class="entreno-item-tema">${tac.libro}</span>
-          <span class="entreno-item-libro">${tac.descripcion}</span>
-        </div>
-        <span class="entreno-item-nivel">${tac.nivel}</span>
-      `;
-      item.addEventListener('click', () => {
-        document.querySelectorAll('.entreno-item').forEach((x) => x.classList.remove('activo'));
-        item.classList.add('activo');
-        tacticaNombreEl.textContent = tac.nombre;
-        tacticaNivelEl.textContent = tac.nivel;
-        tacticaDescripcionEl.textContent = tac.descripcion;
-        tacticaEjEl.classList.remove('oculto');
-        tacticaFeedbackEl.textContent = '';
-        tacticaFeedbackEl.className = 'tactica-feedback';
-        tacticaExplicacionEl.classList.add('oculto');
-        renderTableroSimple(tacticaTableroEl, tac.grid, (c, f) => {
-          if (tac.completada) return;
-          // Validar jugada contra solución
-          // Simplificado: si hace clic en la casilla de origen y destino de la solución
-          // Aquí usamos un estado simple de selección
-          window._tacSel = window._tacSel || null;
-          if (!window._tacSel) {
-            const ficha = tac.grid[f][c];
-            if (ficha !== ' ' && tacBoard.getColor(ficha) === tac.turno) {
-              window._tacSel = { c, f };
-              document.querySelectorAll('#tablero-tactica .casilla-entreno').forEach(el => el.classList.remove('seleccionada'));
-              el.classList.add('seleccionada');
-            }
-          } else {
-            const origen = window._tacSel;
-            const [[cO, fO], [cD, fD]] = tac.jugadaEsperada;
-            const esCorrecto = origen.c === cO && origen.f === fO && c === cD && f === fD;
-            const esLegal = tacBoard.isValidMove([[origen.c, origen.f], [c, f]], tac.turno);
-            if (esCorrecto) {
-              tacticaFeedbackEl.textContent = '✅ ¡Correcto! Motivo táctico aplicado.';
-              tacticaFeedbackEl.className = 'tactica-feedback exito';
-              tacticaExplicacionEl.innerHTML = `<h4>📖 Explicación</h4><p>${tac.explicacion}</p>`;
-              tacticaExplicacionEl.classList.remove('oculto');
-              tac.completada = true;
-            } else if (esLegal) {
-              tacticaFeedbackEl.textContent = '⚠️ Legal, pero no es la jugada clave.';
-              tacticaFeedbackEl.className = 'tactica-feedback info';
-            } else {
-              tacticaFeedbackEl.textContent = '❌ Ilegal.';
-              tacticaFeedbackEl.className = 'tactica-feedback error';
-            }
-            window._tacSel = null;
-          }
-        });
-        const tacBoard = new Board();
-        tacBoard.grid = tac.grid.map(r => [...r]);
-      });
-      tacticaListaEl.appendChild(item);
+  function abrirApertura(panelEl, op) {
+    if (!op) return;
+    const linea = new Linea(op);
+
+    panelEl.innerHTML = `
+      <div class="puzzle-cabecera">
+        <h3>${op.nombre}</h3>
+        <span class="etiqueta">${op.nivel}</span>
+      </div>
+      <p class="puzzle-fuente">${op.libro}</p>
+      <p class="puzzle-texto">${op.descripcion}</p>
+      <p class="puzzle-objetivo"><strong>Objetivo:</strong> ${op.objetivo}</p>
+      <div class="puzzle-tablero-wrap"></div>
+      <div class="puzzle-feedback"></div>
+      <p class="puzzle-comentario"></p>
+      <div class="puzzle-controles">
+        <button class="btn btn-secundario" data-accion="pista">💡 Pista</button>
+        <button class="btn btn-secundario" data-accion="ver">Ver jugada</button>
+      </div>
+    `;
+
+    const wrap = panelEl.querySelector('.puzzle-tablero-wrap');
+    const tablero = document.createElement('div');
+    tablero.className = 'tablero-entreno';
+    wrap.append(tablero, crearCoordenadas());
+
+    const feedback = panelEl.querySelector('.puzzle-feedback');
+    const comentario = panelEl.querySelector('.puzzle-comentario');
+
+    const pintar = () => {
+      pintarMiniTablero(tablero, linea.grid, (c, f) => {
+        linea.seleccionar(c, f);
+        pintar();
+      }, linea.sel);
+
+      feedback.textContent = linea.mensaje;
+      feedback.className = 'puzzle-feedback' + (linea.mensaje ? ' ' + linea.estado : '');
+      comentario.innerHTML = `<strong>${linea.idx} / ${op.jugadas.length}</strong> jugadas` +
+        (linea.comentario ? `. ${linea.comentario}` : '. Te toca mover con blancas.');
+    };
+
+    panelEl.querySelector('[data-accion="pista"]').addEventListener('click', () => {
+      linea.pista();
+      pintar();
     });
-    tacticaEjEl.classList.add('oculto');
+    panelEl.querySelector('[data-accion="ver"]').addEventListener('click', () => {
+      linea.verJugada();
+      pintar();
+    });
+
+    pintar();
+    panelEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
-
-  tacticaPista.addEventListener('click', () => {
-    // Se maneja dentro del click del tablero; aquí dejamos un mensaje genérico
-  });
-
-  tacticaSolucion.addEventListener('click', () => {
-    const item = document.querySelector('.entreno-item.activo');
-    if (!item) return;
-    const tac = TACTICAS.find(t => t.nombre === tacticaNombreEl.textContent);
-    if (tac) {
-      tacticaFeedbackEl.textContent = '🔎 Solución revelada.';
-      tacticaFeedbackEl.className = 'tactica-feedback info';
-      tacticaExplicacionEl.innerHTML = `<h4>📖 Solución</h4><p>${tac.explicacion}</p>`;
-      tacticaExplicacionEl.classList.remove('oculto');
-    }
-  });
-
-  tacticaSiguiente.addEventListener('click', () => {
-    tacticaEjEl.classList.add('oculto');
-    tacticaFeedbackEl.textContent = '';
-    tacticaExplicacionEl.classList.add('oculto');
-    renderTactica();
-  });
 
   /* ---------- Arranque ---------- */
   crearJuego();

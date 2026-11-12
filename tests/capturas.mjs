@@ -39,7 +39,21 @@ await disparar('jugar');
 
 await evaluar(`document.querySelector('.btn-nav[data-seccion="curso"]').click(); true`);
 await new Promise((r) => setTimeout(r, 300));
+await evaluar(`document.querySelector('#curso-lista .puzzle-item').click(); true`);
+await new Promise((r) => setTimeout(r, 400));
 await disparar('curso');
+
+await evaluar(`document.querySelector('.btn-nav[data-seccion="entrenamiento"]').click(); true`);
+await new Promise((r) => setTimeout(r, 300));
+await evaluar(`document.querySelector('#entreno-lista .puzzle-item').click(); true`);
+await new Promise((r) => setTimeout(r, 400));
+await disparar('entrenamiento');
+
+await evaluar(`document.querySelector('.btn-nav[data-seccion="aperturas"]').click(); true`);
+await new Promise((r) => setTimeout(r, 300));
+await evaluar(`document.querySelector('#aperturas-lista .puzzle-item').click(); true`);
+await new Promise((r) => setTimeout(r, 400));
+await disparar('aperturas');
 
 // Móvil
 await enviar('Emulation.setDeviceMetricsOverride', {
